@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       problemType,
       problem,
       slot: slot._id,
-      status: "pending",
+      status: "confirmed",
     });
 
     // populate the slot before returning

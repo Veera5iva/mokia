@@ -16,6 +16,6 @@ export interface Booking {
   problemType: string;
   problem: string;
   slot: TimeSlot | string; // either populated or ObjectId
-  status: "pending" | "confirmed" | "completed" | "cancelled";
+  status: "confirmed" | "scheduled" | "completed" | "cancelled";
   createdAt?: string;
 }

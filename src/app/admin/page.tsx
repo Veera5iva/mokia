@@ -22,6 +22,13 @@ export default function AdminPage() {
   const [showAddSlot, setShowAddSlot] = useState(false)
   const [newSlot, setNewSlot] = useState({ date: "", time: "" })
 
+  // Status management states
+  const [showStatusDialog, setShowStatusDialog] = useState(false)
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<string>("")
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
 
@@ -48,27 +55,167 @@ export default function AdminPage() {
     mutateSlots()
   }
 
-  const updateBookingStatus = async (id: string, status: string) => {
-    await fetch(`/api/bookings/${id}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    })
-    mutateBookings()
+  // Open status selection dialog
+  const handleEditBooking = (booking: Booking) => {
+    console.log("Edit booking clicked:", booking); // Debug log
+    setSelectedBooking(booking)
+    setShowStatusDialog(true)
   }
+
+  // Handle status selection
+  const handleStatusSelect = (status: string) => {
+    setSelectedStatus(status)
+    setShowStatusDialog(false)
+    setShowConfirmation(true)
+  }
+
+  // Confirm status update
+  const confirmStatusUpdate = async () => {
+    if (!selectedBooking || !selectedStatus) return
+
+    setIsUpdating(true)
+    try {
+      const response = await fetch(`/api/bookings/${selectedBooking._id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: selectedStatus }),
+      })
+
+      if (response.ok) {
+        mutateBookings()
+        // Reset states
+        setShowConfirmation(false)
+        setSelectedBooking(null)
+        setSelectedStatus("")
+      } else {
+        const error = await response.json()
+        alert(`Error: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Error updating booking status:", error)
+      alert("An error occurred while updating the booking status")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  // Cancel status update
+  const cancelStatusUpdate = () => {
+    setShowConfirmation(false)
+    setShowStatusDialog(false)
+    setSelectedBooking(null)
+    setSelectedStatus("")
+  }
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed": return "bg-green-100 text-green-800"
-      case "pending": return "bg-yellow-100 text-yellow-800"
       case "completed": return "bg-blue-100 text-blue-800"
       case "cancelled": return "bg-red-100 text-red-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "scheduled": return "bg-purple-100 text-purple-800"
+      default: return "bg-green-100 text-green-800"
     }
+  }
+
+  const getAvailableStatuses = (currentStatus: string) => {
+    console.log("Current status:", currentStatus); // Debug log
+    if (currentStatus === "confirmed") {
+      return [
+        { value: "scheduled", label: "Mark as Scheduled", color: "bg-purple-500 hover:bg-purple-600" },
+        { value: "completed", label: "Mark as Completed", color: "bg-blue-500 hover:bg-blue-600" },
+        { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" }
+      ]
+    }
+    if (currentStatus === "scheduled") {
+      return [
+        { value: "completed", label: "Mark as Completed", color: "bg-blue-500 hover:bg-blue-600" },
+        { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" }
+      ]
+    }
+    // For any other status, return empty array
+    return []
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
+      {/* Status Selection Dialog */}
+      {showStatusDialog && selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Update Booking Status</h3>
+            <div className="text-gray-600 mb-4">
+              Change status for <strong>{selectedBooking.name}</strong>
+            </div>
+            <div className="text-sm text-gray-500 mb-6">
+              Current status: <Badge className={getStatusColor(selectedBooking.status)}>{selectedBooking.status}</Badge>
+            </div>
+
+            <div className="space-y-3">
+              {getAvailableStatuses(selectedBooking.status).length > 0 ? (
+                getAvailableStatuses(selectedBooking.status).map((status) => (
+                  <Button
+                    key={status.value}
+                    onClick={() => handleStatusSelect(status.value)}
+                    className={`w-full ${status.color} text-white font-medium py-3`}
+                  >
+                    {status.label}
+                  </Button>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  No status changes available for {selectedBooking.status} bookings.
+                </div>
+              )}
+            </div>
+
+            <Button
+              onClick={() => setShowStatusDialog(false)}
+              variant="outline"
+              className="w-full mt-4"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {showConfirmation && selectedBooking && selectedStatus && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Confirm Status Update</h3>
+            <div className="text-gray-600 mb-4">
+              Are you sure you want to change <strong>{selectedBooking.name}</strong>&apos;s booking status to:
+            </div>
+            <div className="text-center mb-6">
+              <Badge className={getStatusColor(selectedStatus)} style={{ fontSize: '14px', padding: '6px 12px' }}>
+                {selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}
+              </Badge>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={confirmStatusUpdate}
+                disabled={isUpdating}
+                className="flex-1 bg-rose-500 hover:bg-rose-600 text-white"
+              >
+                {isUpdating ? "Updating..." : "Confirm"}
+              </Button>
+              <Button
+                onClick={cancelStatusUpdate}
+                variant="outline"
+                className="flex-1"
+                disabled={isUpdating}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">
@@ -237,11 +384,21 @@ export default function AdminPage() {
                         <div className="flex items-center justify-between mb-2">
                           <Badge className={getStatusColor(booking.status)}>{booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</Badge>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => updateBookingStatus(booking._id, "completed")}><Edit className="h-4 w-4" /></Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditBooking(booking)}
+                              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
                             <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-600"><strong>Problem:</strong> <p className="mt-1 text-xs">{booking.problem.substring(0, 100)}...</p></div>
+                        <div className="text-sm text-gray-600">
+                          <strong>Problem:</strong>
+                          <div className="mt-1 text-xs">{booking.problem.substring(0, 100)}...</div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
