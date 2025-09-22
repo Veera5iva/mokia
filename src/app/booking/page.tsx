@@ -12,7 +12,7 @@ import Link from "next/link"
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function BookingPage() {
-   const { data: slots } = useSWR<TimeSlot[]>("/api/slots", fetcher)
+   const { data: slots, mutate: mutateSlots } = useSWR<TimeSlot[]>("/api/slots", fetcher)
    const [formData, setFormData] = useState({
       name: "",
       email: "",
@@ -21,6 +21,7 @@ export default function BookingPage() {
       problemType: "",
       selectedSlot: "",
    })
+   const [isSubmitting, setIsSubmitting] = useState(false)
 
    const problemTypes = [
       "Love Failure / Breakup",
@@ -38,14 +39,36 @@ export default function BookingPage() {
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault()
-      const res = await fetch("/api/bookings", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ ...formData, slotId: formData.selectedSlot }),
-      })
-      const data = await res.json()
-      console.log("Booking saved:", data)
-      window.location.href = "/payment" // or show confirmation page
+      if (isSubmitting) return
+      setIsSubmitting(true)
+
+      try {
+         const res = await fetch("/api/bookings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...formData, slotId: formData.selectedSlot }),
+         })
+         const data = await res.json()
+         if (res.ok) {
+            alert("Booking successful!")
+            setFormData({
+               name: "",
+               email: "",
+               phone: "",
+               problem: "",
+               problemType: "",
+               selectedSlot: "",
+            })
+            mutateSlots() // refresh available slots
+         } else {
+            alert(data.error || "Booking failed")
+         }
+      } catch (err) {
+         console.error(err)
+         alert("Booking failed")
+      } finally {
+         setIsSubmitting(false)
+      }
    }
 
    const formatDate = (dateString: string) => {
@@ -57,6 +80,8 @@ export default function BookingPage() {
          day: "numeric",
       })
    }
+
+   const isFormValid = formData.name && formData.email && formData.problem && formData.problemType && formData.selectedSlot
 
    return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
@@ -167,10 +192,10 @@ export default function BookingPage() {
                            <div
                               key={slot._id}
                               className={`border rounded-lg p-4 cursor-pointer transition-all ${!slot.available
-                                    ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
-                                    : formData.selectedSlot === slot._id
-                                       ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
-                                       : "border-gray-200 hover:border-rose-300 hover:bg-rose-25"
+                                 ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
+                                 : formData.selectedSlot === slot._id
+                                    ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
+                                    : "border-gray-200 hover:border-rose-300 hover:bg-rose-25"
                                  }`}
                               onClick={() => slot.available && handleInputChange("selectedSlot", slot._id)}
                            >
@@ -190,16 +215,13 @@ export default function BookingPage() {
                      <Button
                         type="submit"
                         size="lg"
-                        className="bg-rose-500 hover:bg-rose-600 text-white px-12 py-4 text-lg"
-                        disabled={
-                           !formData.name ||
-                           !formData.email ||
-                           !formData.problem ||
-                           !formData.problemType ||
-                           !formData.selectedSlot
-                        }
+                        className={`px-12 py-4 text-lg ${isFormValid
+                           ? "bg-rose-500 hover:bg-rose-600 text-white"
+                           : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                           }`}
+                        disabled={!isFormValid || isSubmitting}
                      >
-                        Proceed to Payment
+                        Book Now
                      </Button>
                   </div>
                </form>

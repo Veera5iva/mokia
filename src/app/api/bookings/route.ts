@@ -13,54 +13,33 @@ export async function GET() {
 
 // POST /api/bookings - create a booking
 export async function POST(req: Request) {
-  const { name, email, phone, problemType, problem, slotId } = await req.json();
-  if (!name || !email || !problemType || !problem || !slotId)
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  try {
+    const { name, email, phone, problemType, problem, slotId } = await req.json();
 
-  const slot = await Slot.findById(slotId);
-  if (!slot || !slot.available)
-    return NextResponse.json({ error: "Slot not available" }, { status: 400 });
+    if (!name || !email || !problemType || !problem || !slotId)
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-  // Mark slot unavailable
-  slot.available = false;
-  await slot.save();
+    const slot = await Slot.findById(slotId);
+    if (!slot || !slot.available)
+      return NextResponse.json({ error: "Slot not available" }, { status: 400 });
 
-  const booking = await Booking.create({
-    name,
-    email,
-    phone,
-    problemType,
-    problem,
-    slot: slot._id,
-    status: "pending",
-  });
+    // Mark slot unavailable
+    slot.available = false;
+    await slot.save();
 
-  return NextResponse.json(booking);
-}
+    const booking = await Booking.create({
+      name,
+      email,
+      phone,
+      problemType,
+      problem,
+      slot: slot._id,
+      status: "pending",
+    });
 
-// PATCH /api/bookings/:id - update booking status
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const { status } = await req.json();
-  const booking = await Booking.findById(params.id).populate("slot");
-  if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-
-  booking.status = status;
-  await booking.save();
-
-  return NextResponse.json(booking);
-}
-
-// DELETE /api/bookings/:id
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const booking = await Booking.findById(params.id);
-  if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-
-  // Make slot available again
-  const slot = await Slot.findById(booking.slot);
-  if (slot) slot.available = true;
-  await slot?.save();
-
-  await Booking.findByIdAndDelete(params.id);
-
-  return NextResponse.json({ success: true });
+    return NextResponse.json(booking);
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
