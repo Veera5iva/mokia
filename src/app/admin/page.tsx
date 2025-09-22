@@ -173,10 +173,21 @@ export default function AdminPage() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <Badge variant={slot.booked ? "default" : slot.available ? "secondary" : "outline"}>
+                        <Badge
+                          variant={
+                            slot.booked
+                              ? "default"
+                              : slot.available
+                                ? "available"
+                                : "disabled"
+                          }
+                        >
                           {slot.booked ? "Booked" : slot.available ? "Available" : "Disabled"}
                         </Badge>
-                        {slot.clientName && <span className="text-sm text-gray-600">Client: {slot.clientName}</span>}
+
+                        {slot.clientName && (
+                          <span className="text-sm text-gray-600">Client: {slot.clientName}</span>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -267,7 +278,7 @@ export default function AdminPage() {
                 ))}
             </div>
           )}
-          
+
         </div>
       </div>
     </div>
