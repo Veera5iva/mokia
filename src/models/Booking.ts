@@ -9,8 +9,8 @@ const bookingSchema = new Schema({
   slot: { type: mongoose.Schema.Types.ObjectId, ref: "Slot", required: true },
   status: {
     type: String,
-    enum: ["pending", "confirmed", "completed", "cancelled"],
-    default: "pending",
+    enum: [, "confirmed", "scheduled", "completed", "cancelled"],
+    default: "confirmed",
   },
   createdAt: { type: Date, default: Date.now },
 });
