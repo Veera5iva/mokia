@@ -37,6 +37,9 @@ export async function POST(req: Request) {
       status: "pending",
     });
 
+    // populate the slot before returning
+    await booking.populate("slot");
+
     return NextResponse.json(booking);
   } catch (err) {
     console.error(err);

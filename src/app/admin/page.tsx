@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useState } from "react"
@@ -193,7 +194,7 @@ export default function AdminPage() {
                   <CardContent className="p-6">
                     <div className="grid md:grid-cols-3 gap-6">
                       <div>
-                        <h3 className="font-semibold text-gray-900 mb-2">{booking.clientName}</h3>
+                        <h3 className="font-semibold text-gray-900 mb-2">{booking.name}</h3>
                         <div className="space-y-1 text-sm text-gray-600">
                           <div>Email: {booking.email}</div>
                           <div>Phone: {booking.phone}</div>
@@ -203,8 +204,22 @@ export default function AdminPage() {
                       <div>
                         <h4 className="font-medium text-gray-900 mb-2">Session Details</h4>
                         <div className="space-y-1 text-sm text-gray-600">
-                          <div className="flex items-center gap-1"><Calendar className="h-4 w-4" /> {formatDate(booking.date)}</div>
-                          <div className="flex items-center gap-1"><Clock className="h-4 w-4" /> {booking.time}</div>
+                          {booking.slot ? (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                {formatDate((booking as any).slot.date)}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                {(booking as any).slot.time}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-sm text-gray-500">Slot removed</div>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div>
@@ -227,19 +242,32 @@ export default function AdminPage() {
           {/* History Tab */}
           {activeTab === "history" && (
             <div className="space-y-6">
-              {bookings?.filter(b => b.status === "completed").map(booking => (
-                <Card key={booking._id} className="border-rose-200">
-                  <CardContent>
-                    <div>{booking.clientName}</div>
-                    <div>{booking.email}</div>
-                    <div>{formatDate(booking.date)} {booking.time}</div>
-                    <Badge className={getStatusColor("completed")}>Completed</Badge>
-                  </CardContent>
-                </Card>
-              ))}
+              {bookings
+                ?.filter(b => b.status === "completed")
+                .map(booking => (
+                  <Card key={booking._id} className="border-rose-200">
+                    <CardContent className="p-4 space-y-2">
+                      <div className="font-semibold text-gray-900">{booking.name}</div>
+                      <div className="text-sm text-gray-600">{booking.email}</div>
+
+                      {booking.slot ? (
+                        <div className="text-sm text-gray-600">
+                          {formatDate((booking as any).slot.date)}{" "}
+                          {(booking as any).slot.time}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-500 italic">
+                          Slot removed
+                        </div>
+                      )}
+
+                      <Badge className={getStatusColor("completed")}>Completed</Badge>
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           )}
-
+          
         </div>
       </div>
     </div>
