@@ -24,7 +24,6 @@ export default function AdminPage() {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
 
-  // Add a new slot
   const handleAddSlot = async () => {
     if (!newSlot.date || !newSlot.time) return
     await fetch("/api/slots", {
@@ -37,19 +36,17 @@ export default function AdminPage() {
     setShowAddSlot(false)
   }
 
-  // Toggle availability
+  // PATCH now toggles availability
   const toggleSlotAvailability = async (id: string) => {
-    await fetch(`/api/slots/${id}/toggle`, { method: "PATCH" })
+    await fetch(`/api/slots/${id}`, { method: "PATCH" })
     mutateSlots()
   }
 
-  // Delete a slot
   const handleDeleteSlot = async (id: string) => {
     await fetch(`/api/slots/${id}`, { method: "DELETE" })
     mutateSlots()
   }
 
-  // Update booking status
   const updateBookingStatus = async (id: string, status: string) => {
     await fetch(`/api/bookings/${id}/status`, {
       method: "PATCH",
@@ -215,6 +212,7 @@ export default function AdminPage() {
                           <Badge className={getStatusColor(booking.status)}>{booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</Badge>
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => updateBookingStatus(booking._id, "completed")}><Edit className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
                           </div>
                         </div>
                         <div className="text-sm text-gray-600"><strong>Problem:</strong> <p className="mt-1 text-xs">{booking.problem.substring(0, 100)}...</p></div>
