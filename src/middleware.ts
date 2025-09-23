@@ -1,25 +1,26 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
- 
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+/**
+ * Generic middleware for Next.js
+ * Can be extended later for authentication, logging, or other logic.
+ */
 export function middleware(request: NextRequest) {
+  // Example: Log incoming requests
+  console.log('Middleware hit:', request.nextUrl.pathname);
 
-  //  const path = request.nextUrl.pathname;
-
-  //  const isPublicPath = path === '/consumer/login' || path === '/consumer/signup' || path === '/verifyemail'
-
-  //  const token = request.cookies.get("token")?.value || ""
-
-  // //  if(isPublicPath && token) return NextResponse.redirect(new URL("/consumer/profile", request.nextUrl));
-  // //  if(!isPublicPath && !token) return NextResponse.redirect(new URL("/consumer/login", request.nextUrl));
-
+  // By default, just continue to the requested page
+  return NextResponse.next();
 }
- 
+
+// Define which paths this middleware applies to
 export const config = {
   matcher: [
-   "/",
-   "/profile",
-   "/login",
-   "/signup",
-   "/verifyemail",
+    '/',             // Homepage
+    // '/profile',      // Example protected route
+    // '/login',        // Login page
+    // '/signup',       // Signup page
+    // '/verifyemail',  // Email verification
+    // '/api/webhook',  // Your Razorpay webhook endpoint
   ],
-}
+};
