@@ -3,7 +3,7 @@
 
 import { useState } from "react"
 import useSWR from "swr"
-import { TimeSlot, Booking } from "@/interfaces/interfaces"
+import type { TimeSlot, Booking } from "@/interfaces/interfaces"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,7 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Clock, Plus, Edit, Trash2, Heart, Settings, Users } from "lucide-react"
 import Link from "next/link"
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
+
+const formatINR = (n: number | string | undefined) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
+    typeof n === "string" ? Number(n || 0) : (n ?? 0),
+  )
 
 export default function AdminPage() {
   const { data: slots, mutate: mutateSlots } = useSWR<TimeSlot[]>("/api/slots", fetcher)
@@ -36,35 +41,40 @@ export default function AdminPage() {
   const [isUpdating, setIsUpdating] = useState(false)
 
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+    new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
 
   const handleAddSlot = async () => {
-    if (!newSlot.date || !newSlot.time) return;
+    if (!newSlot.date || !newSlot.time) return
 
     const payload = {
       date: newSlot.date,
       time: newSlot.time,
       priority: newSlot.priority || "normal",
       price: Number(newSlot.price || 0),
-    };
+    }
 
     const res = await fetch("/api/slots", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    });
+    })
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error("Add slot failed", err);
-      alert(err.error || "Failed to add slot");
-      return;
+      const err = await res.json().catch(() => ({}))
+      console.error("Add slot failed", err)
+      alert(err.error || "Failed to add slot")
+      return
     }
 
-    mutateSlots(); // refresh
-    setNewSlot({ date: "", time: "", priority: "normal", price: "" });
-    setShowAddSlot(false);
-  };
+    mutateSlots() // refresh
+    setNewSlot({ date: "", time: "", priority: "normal", price: "" })
+    setShowAddSlot(false)
+  }
 
   // PATCH now toggles availability
   const toggleSlotAvailability = async (id: string) => {
@@ -79,7 +89,7 @@ export default function AdminPage() {
 
   // Open status selection dialog
   const handleEditBooking = (booking: Booking) => {
-    console.log("Edit booking clicked:", booking); // Debug log
+    console.log("Edit booking clicked:", booking) // Debug log
     setSelectedBooking(booking)
     setShowStatusDialog(true)
   }
@@ -129,32 +139,36 @@ export default function AdminPage() {
     setSelectedStatus("")
   }
 
-
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed": return "bg-green-100 text-green-800"
-      case "pending": return "bg-yellow-100 text-yellow-800"
-      case "completed": return "bg-blue-100 text-blue-800"
-      case "cancelled": return "bg-red-100 text-red-800"
-      case "scheduled": return "bg-purple-100 text-purple-800"
-      default: return "bg-green-100 text-green-800"
+      case "confirmed":
+        return "bg-green-100 text-green-800"
+      case "pending":
+        return "bg-yellow-100 text-yellow-800"
+      case "completed":
+        return "bg-blue-100 text-blue-800"
+      case "cancelled":
+        return "bg-red-100 text-red-800"
+      case "scheduled":
+        return "bg-purple-100 text-purple-800"
+      default:
+        return "bg-green-100 text-green-800"
     }
   }
 
   const getAvailableStatuses = (currentStatus: string) => {
-    console.log("Current status:", currentStatus); // Debug log
+    console.log("Current status:", currentStatus) // Debug log
     if (currentStatus === "confirmed") {
       return [
         { value: "scheduled", label: "Mark as Scheduled", color: "bg-purple-500 hover:bg-purple-600" },
         { value: "completed", label: "Mark as Completed", color: "bg-blue-500 hover:bg-blue-600" },
-        { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" }
+        { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" },
       ]
     }
     if (currentStatus === "scheduled") {
       return [
         { value: "completed", label: "Mark as Completed", color: "bg-blue-500 hover:bg-blue-600" },
-        { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" }
+        { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" },
       ]
     }
     // For any other status, return empty array
@@ -172,7 +186,8 @@ export default function AdminPage() {
               Change status for <strong>{selectedBooking.name}</strong>
             </div>
             <div className="text-sm text-gray-500 mb-6">
-              Current status: <Badge className={getStatusColor(selectedBooking.status)}>{selectedBooking.status.toUpperCase()}</Badge>
+              Current status:{" "}
+              <Badge className={getStatusColor(selectedBooking.status)}>{selectedBooking.status.toUpperCase()}</Badge>
             </div>
 
             <div className="space-y-3">
@@ -193,11 +208,7 @@ export default function AdminPage() {
               )}
             </div>
 
-            <Button
-              onClick={() => setShowStatusDialog(false)}
-              variant="outline"
-              className="w-full mt-4"
-            >
+            <Button onClick={() => setShowStatusDialog(false)} variant="outline" className="w-full mt-4">
               Cancel
             </Button>
           </div>
@@ -213,7 +224,7 @@ export default function AdminPage() {
               Are you sure you want to change <strong>{selectedBooking.name}</strong>&apos;s booking status to:
             </div>
             <div className="text-center mb-6">
-              <Badge className={getStatusColor(selectedStatus)} style={{ fontSize: '14px', padding: '6px 12px' }}>
+              <Badge className={getStatusColor(selectedStatus)} style={{ fontSize: "14px", padding: "6px 12px" }}>
                 {selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}
               </Badge>
             </div>
@@ -229,7 +240,7 @@ export default function AdminPage() {
               <Button
                 onClick={cancelStatusUpdate}
                 variant="outline"
-                className="flex-1"
+                className="flex-1 bg-transparent"
                 disabled={isUpdating}
               >
                 Cancel
@@ -245,7 +256,9 @@ export default function AdminPage() {
           <Link href="/" className="flex items-center gap-2">
             <Heart className="h-8 w-8 text-rose-500" />
             <span className="text-2xl font-bold text-gray-900">HeartHeal</span>
-            <Badge variant="secondary" className="ml-2">Admin</Badge>
+            <Badge variant="secondary" className="ml-2">
+              Admin
+            </Badge>
           </Link>
           <div className="flex items-center gap-4">
             <Button variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50 bg-transparent">
@@ -332,7 +345,7 @@ export default function AdminPage() {
                             setNewSlot({ ...newSlot, priority: value as "normal" | "priority" })
                           }
                         >
-                          <SelectTrigger id="priority">
+                          <SelectTrigger id="priority" className="h-10 px-3 text-sm">
                             <SelectValue placeholder="Select priority" />
                           </SelectTrigger>
                           <SelectContent>
@@ -349,9 +362,7 @@ export default function AdminPage() {
                           min={0}
                           step={1}
                           value={String(newSlot.price ?? "")}
-                          onChange={(e) =>
-                            setNewSlot({ ...newSlot, price: e.target.value })
-                          }
+                          onChange={(e) => setNewSlot({ ...newSlot, price: e.target.value })}
                           placeholder="e.g. 1500"
                         />
                       </div>
@@ -371,40 +382,51 @@ export default function AdminPage() {
               )}
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {slots?.map(slot => (
-                  <Card key={slot._id} className={`${slot.booked ? "border-green-200 bg-green-50" : slot.available ? "border-rose-200" : "border-gray-200 bg-gray-50"}`}>
-                    <CardContent className="p-4">
+                {slots?.map((slot) => (
+                  <Card
+                    key={slot._id}
+                    className={`${slot.booked ? "border-green-200 bg-green-50" : slot.available ? "border-rose-200" : "border-gray-200 bg-gray-50"}${slot.priority === "priority" ? " border-purple-400" : ""}`}
+                  >
+                    <CardContent className="relative p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <div className="font-medium text-gray-900">{formatDate(slot.date)}</div>
-                          <div className="flex items-center gap-1 text-sm text-gray-600"><Clock className="h-4 w-4" /> {slot.time}</div>
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <Clock className="h-4 w-4" /> {slot.time}
+                          </div>
                         </div>
                         <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={() => toggleSlotAvailability(slot._id)}
-                            className={slot.available ? "border-red-200 text-red-600 hover:bg-red-50" : "border-green-200 text-green-600 hover:bg-green-50"}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleSlotAvailability(slot._id)}
+                            className={
+                              slot.available
+                                ? "border-red-200 text-red-600 hover:bg-red-50"
+                                : "border-green-200 text-green-600 hover:bg-green-50"
+                            }
+                          >
                             {slot.available ? "Disable" : "Enable"}
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDeleteSlot(slot._id)} className="border-red-200 text-red-600 hover:bg-red-50">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteSlot(slot._id)}
+                            className="border-red-200 text-red-600 hover:bg-red-50"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <Badge
-                          variant={
-                            slot.booked
-                              ? "default"
-                              : slot.available
-                                ? "available"
-                                : "disabled"
-                          }
-                        >
+                        <Badge variant={slot.booked ? "default" : slot.available ? "available" : "disabled"}>
                           {slot.booked ? "Booked" : slot.available ? "Available" : "Disabled"}
                         </Badge>
 
-                        {slot.clientName && (
-                          <span className="text-sm text-gray-600">Client: {slot.clientName}</span>
-                        )}
+                        {slot.clientName && <span className="text-sm text-gray-600">Client: {slot.clientName}</span>}
+                      </div>
+                      <div className="absolute right-4 bottom-3 text-sm font-semibold text-gray-900">
+                        {formatINR((slot as any).price)}
                       </div>
                     </CardContent>
                   </Card>
@@ -417,63 +439,82 @@ export default function AdminPage() {
           {activeTab === "bookings" && (
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold text-gray-900">Client Bookings</h2>
-              {bookings?.filter(b => b.status !== "completed").map(booking => (
-                <Card key={booking._id} className="border-rose-200">
-                  <CardContent className="p-6">
-                    <div className="grid md:grid-cols-3 gap-6">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-2">{booking.name}</h3>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <div>Email: {booking.email}</div>
-                          <div>Phone: {booking.phone}</div>
-                          <div>Issue: {booking.problemType}</div>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Session Details</h4>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          {booking.slot ? (
-                            <>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                {formatDate((booking as any).slot.date)}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                {(booking as any).slot.time}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="text-sm text-gray-500">Slot removed</div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className={getStatusColor(booking.status)}>{booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</Badge>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditBooking(booking)}
-                              className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
+              {bookings
+                ?.filter((b) => b.status !== "completed")
+                .map((booking) => (
+                  <Card
+                    key={booking._id}
+                    className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}
+                  >
+                    <CardContent className="p-6">
+                      <div className="grid md:grid-cols-3 gap-6">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-2">{booking.name}</h3>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <div>Email: {booking.email}</div>
+                            <div>Phone: {booking.phone}</div>
+                            <div>Issue: {booking.problemType}</div>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          <strong>Problem:</strong>
-                          <div className="mt-1 text-xs">{booking.problem.substring(0, 100)}...</div>
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2">Session Details</h4>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            {booking.slot ? (
+                              <>
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-4 w-4" />
+                                  {formatDate((booking as any).slot.date)}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  {(booking as any).slot.time}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-500">Price:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {formatINR((booking as any).slot.price)}
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="text-sm text-gray-500">Slot removed</div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge className={getStatusColor(booking.status)}>
+                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                            </Badge>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditBooking(booking)}
+                                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <strong>Problem:</strong>
+                            <div className="mt-1 text-xs">{booking.problem.substring(0, 100)}...</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           )}
 
@@ -481,31 +522,38 @@ export default function AdminPage() {
           {activeTab === "history" && (
             <div className="space-y-6">
               {bookings
-                ?.filter(b => b.status === "completed")
-                .map(booking => (
-                  <Card key={booking._id} className="border-rose-200">
-                    <CardContent className="p-4 space-y-2">
+                ?.filter((b) => b.status === "completed")
+                .map((booking) => (
+                  <Card
+                    key={booking._id}
+                    className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}
+                  >
+                    <CardContent className="relative p-4 space-y-2">
+                      {/* top-right status + price */}
+                      <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
+                        <Badge className={getStatusColor("completed")}>Completed</Badge>
+                        {(booking as any).slot && (
+                          <div className="text-sm font-semibold text-gray-900">
+                            {formatINR((booking as any).slot.price)}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="font-semibold text-gray-900">{booking.name}</div>
                       <div className="text-sm text-gray-600">{booking.email}</div>
 
                       {booking.slot ? (
                         <div className="text-sm text-gray-600">
-                          {formatDate((booking as any).slot.date)}{" "}
-                          {(booking as any).slot.time}
+                          {formatDate((booking as any).slot.date)} {(booking as any).slot.time}
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-500 italic">
-                          Slot removed
-                        </div>
+                        <div className="text-sm text-gray-500 italic">Slot removed</div>
                       )}
-
-                      <Badge className={getStatusColor("completed")}>Completed</Badge>
                     </CardContent>
                   </Card>
                 ))}
             </div>
           )}
-
         </div>
       </div>
     </div>
