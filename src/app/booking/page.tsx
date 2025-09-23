@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { TimeSlot } from "@/interfaces/interfaces";
 import { Input, Label, Textarea, Button } from "@/components/ui";
@@ -19,6 +20,7 @@ declare global {
 }
 
 export default function BookingPage() {
+   const router = useRouter();
    const { data: slots, mutate: mutateSlots, error: slotsError } = useSWR<TimeSlot[]>("/api/slots", fetcher);
    const [formData, setFormData] = useState({
       name: "",
@@ -75,19 +77,12 @@ export default function BookingPage() {
       setFormData(prev => ({ ...prev, [field]: value }));
    };
 
-   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-      // You can replace this with a proper toast library like react-hot-toast
-      const emoji = type === 'success' ? '🎉' : '❌';
-      alert(`${emoji} ${message}`);
-   };
-
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       if (isSubmitting) return;
 
       // Validate form
       if (!isFormValid) {
-         showToast('Please fill in all required fields', 'error');
          return;
       }
 
@@ -99,7 +94,7 @@ export default function BookingPage() {
          if (!razorpayLoaded) {
             const loaded = await loadRazorpayScript();
             if (!loaded) {
-               throw new Error('Failed to load Razorpay. Please try again.');
+               throw new Error('Failed to load payment gateway. Please try again.');
             }
          }
 
@@ -169,32 +164,41 @@ export default function BookingPage() {
 
                   const verifyData = await verifyRes.json();
                   if (verifyData.success) {
-                     showToast('Payment successful & booking confirmed!', 'success');
-                     // Reset form
-                     setFormData({
-                        name: "",
-                        email: "",
-                        phone: "",
-                        problem: "",
-                        problemType: "",
-                        selectedSlot: "",
-                     });
-                     // Refresh slots
-                     mutateSlots();
+                     // Redirect to success page with payment details
+                     const paymentDetails = {
+                        amount: orderData.amount / 100, // Convert from paise to rupees
+                        date: new Date().toLocaleString(),
+                        reference: response.razorpay_payment_id,
+                        bookingId: booking._id
+                     };
+
+                     const queryString = new URLSearchParams({
+                        amount: paymentDetails.amount.toString(),
+                        date: paymentDetails.date,
+                        reference: paymentDetails.reference,
+                        bookingId: paymentDetails.bookingId
+                     }).toString();
+
+                     router.push(`/booking/success?${queryString}`);
                   } else {
                      throw new Error(verifyData.error || 'Payment verification failed');
                   }
                } catch (err: any) {
                   console.error("Payment verification error:", err);
-                  showToast(err.message || 'Payment verification failed', 'error');
-               } finally {
-                  setIsSubmitting(false);
+                  // Redirect to failure page with error details
+                  const queryString = new URLSearchParams({
+                     error: err.message || 'Payment verification failed',
+                     orderId: orderData.orderId
+                  }).toString();
+
+                  router.push(`/booking/failure?${queryString}`);
                }
             },
             modal: {
                ondismiss: function () {
                   setIsSubmitting(false);
-                  showToast('Payment cancelled', 'error');
+                  // Redirect to failure page for cancelled payment
+                  router.push('/booking/failure?error=Payment cancelled by user');
                }
             },
             theme: {
@@ -208,22 +212,33 @@ export default function BookingPage() {
 
          // Check if Razorpay is available before creating instance
          if (!window.Razorpay) {
-            throw new Error('Razorpay failed to load. Please refresh the page and try again.');
+            throw new Error('Payment gateway failed to load. Please refresh the page and try again.');
          }
 
          const rzp = new window.Razorpay(options);
 
          rzp.on('payment.failed', function (response: any) {
             console.error('Payment failed:', response.error);
-            showToast(`Payment failed: ${response.error.description}`, 'error');
-            setIsSubmitting(false);
+            // Redirect to failure page with Razorpay error details
+            const queryString = new URLSearchParams({
+               error: response.error.description || 'Payment failed',
+               code: response.error.code || '',
+               orderId: orderData.orderId
+            }).toString();
+
+            router.push(`/booking/failure?${queryString}`);
          });
 
          rzp.open();
 
       } catch (err: any) {
          console.error('Booking error:', err);
-         showToast(err.message || 'Something went wrong. Please try again.', 'error');
+         // Redirect to failure page for booking errors
+         const queryString = new URLSearchParams({
+            error: err.message || 'Something went wrong. Please try again.'
+         }).toString();
+
+         router.push(`/booking/failure?${queryString}`);
       } finally {
          if (!loadingRazorpay) {
             setIsSubmitting(false);
@@ -256,32 +271,6 @@ export default function BookingPage() {
       formData.problemType &&
       formData.selectedSlot
    );
-
-   // Loading states
-   if (!slots && !slotsError) {
-      return (
-         <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center">
-            <div className="text-center">
-               <Loader2 className="h-8 w-8 animate-spin text-rose-500 mx-auto mb-4" />
-               <p className="text-gray-600">Loading available slots...</p>
-            </div>
-         </div>
-      );
-   }
-
-   // Error state
-   if (slotsError) {
-      return (
-         <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center">
-            <div className="text-center">
-               <p className="text-red-600 mb-4">Failed to load booking slots</p>
-               <Button onClick={() => window.location.reload()}>
-                  Retry
-               </Button>
-            </div>
-         </div>
-      );
-   }
 
    return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
@@ -401,8 +390,25 @@ export default function BookingPage() {
                         </CardTitle>
                      </CardHeader>
                      <CardContent>
-                        {!slots || slots.length === 0 ? (
-                           <p className="text-center text-gray-500 py-8">No available slots at the moment</p>
+                        {/* Loading state for slots only */}
+                        {!slots && !slotsError ? (
+                           <div className="text-center py-12">
+                              <Loader2 className="h-8 w-8 animate-spin text-rose-500 mx-auto mb-4" />
+                              <p className="text-gray-600">Loading available slots...</p>
+                           </div>
+                        ) : slotsError ? (
+                           <div className="text-center py-12">
+                              <p className="text-red-600 mb-4">Failed to load booking slots</p>
+                              <Button
+                                 onClick={() => mutateSlots()}
+                                 variant="outline"
+                                 size="sm"
+                              >
+                                 Retry
+                              </Button>
+                           </div>
+                        ) : !slots || slots.length === 0 ? (
+                           <p className="text-center text-gray-500 py-12">No available slots at the moment</p>
                         ) : (
                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {slots.map((slot: TimeSlot) => (
