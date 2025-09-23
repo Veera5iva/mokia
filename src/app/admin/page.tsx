@@ -20,7 +20,12 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState<"slots" | "bookings" | "history">("slots")
   const [showAddSlot, setShowAddSlot] = useState(false)
-  const [newSlot, setNewSlot] = useState({ date: "", time: "" })
+  const [newSlot, setNewSlot] = useState({
+    date: "",
+    time: "",
+    priority: "normal",
+    price: "", // string here so input can be empty; convert on submit
+  })
 
   // Status management states
   const [showStatusDialog, setShowStatusDialog] = useState(false)
@@ -33,16 +38,32 @@ export default function AdminPage() {
     new Date(dateString).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
 
   const handleAddSlot = async () => {
-    if (!newSlot.date || !newSlot.time) return
-    await fetch("/api/slots", {
+    if (!newSlot.date || !newSlot.time) return;
+
+    const payload = {
+      date: newSlot.date,
+      time: newSlot.time,
+      priority: newSlot.priority || "normal",
+      price: Number(newSlot.price || 0),
+    };
+
+    const res = await fetch("/api/slots", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newSlot),
-    })
-    mutateSlots()
-    setNewSlot({ date: "", time: "" })
-    setShowAddSlot(false)
-  }
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error("Add slot failed", err);
+      alert(err.error || "Failed to add slot");
+      return;
+    }
+
+    mutateSlots(); // refresh
+    setNewSlot({ date: "", time: "", priority: "normal", price: "" });
+    setShowAddSlot(false);
+  };
 
   // PATCH now toggles availability
   const toggleSlotAvailability = async (id: string) => {
@@ -283,18 +304,61 @@ export default function AdminPage() {
                     <CardTitle>Add New Time Slot</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid md:grid-cols-4 gap-4">
                       <div>
                         <Label>Date</Label>
-                        <Input type="date" value={newSlot.date} onChange={e => setNewSlot({ ...newSlot, date: e.target.value })} />
+                        <Input
+                          type="date"
+                          value={newSlot.date}
+                          onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
+                        />
                       </div>
+
                       <div>
                         <Label>Time</Label>
-                        <Input type="time" value={newSlot.time} onChange={e => setNewSlot({ ...newSlot, time: e.target.value })} />
+                        <Input
+                          type="time"
+                          value={newSlot.time}
+                          onChange={(e) => setNewSlot({ ...newSlot, time: e.target.value })}
+                        />
                       </div>
-                      <div className="flex items-end gap-2">
-                        <Button onClick={handleAddSlot} className="bg-rose-500 hover:bg-rose-600">Add Slot</Button>
-                        <Button variant="outline" onClick={() => setShowAddSlot(false)}>Cancel</Button>
+
+                      <div>
+                        <Label>Priority</Label>
+                        <select
+                          value={newSlot.priority}
+                          onChange={(e) =>
+                            setNewSlot({ ...newSlot, priority: e.target.value as "normal" | "priority" })
+                          }
+                          className="mt-1 block w-full rounded-md border px-2 py-2"
+                        >
+                          <option value="normal">Normal</option>
+                          <option value="priority">Priority (Gold)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <Label>Price (INR)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={String(newSlot.price ?? "")}
+                          onChange={(e) =>
+                            setNewSlot({ ...newSlot, price: e.target.value })
+                          }
+                          placeholder="e.g. 1500"
+                        />
+                      </div>
+
+                      {/* action buttons below spanning full width */}
+                      <div className="md:col-span-4 flex gap-2 justify-end mt-2">
+                        <Button onClick={handleAddSlot} className="bg-rose-500 hover:bg-rose-600">
+                          Add Slot
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowAddSlot(false)}>
+                          Cancel
+                        </Button>
                       </div>
                     </div>
                   </CardContent>

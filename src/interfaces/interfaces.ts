@@ -1,9 +1,11 @@
 // src/interfaces/interfaces.ts
 export interface TimeSlot {
   _id: string;
-  date: string; // or Date (ISO string is fine)
-  time: string;
+  date: string; // "YYYY-MM-DD" or ISO
+  time: string; // "10:00 AM" etc
   available: boolean;
+  priority?: "normal" | "priority";
+  price?: number; // INR
   booked?: boolean;
   clientName?: string;
 }

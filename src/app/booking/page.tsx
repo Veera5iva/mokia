@@ -221,7 +221,7 @@ export default function BookingPage() {
                            }`}
                         disabled={!isFormValid || isSubmitting}
                      >
-                        Book Now
+                        Proceed to Payment
                      </Button>
                   </div>
                </form>
