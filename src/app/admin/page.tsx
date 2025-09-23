@@ -531,27 +531,31 @@ export default function AdminPage() {
                     key={booking._id}
                     className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}
                   >
-                    <CardContent className="relative p-4 space-y-2">
-                      {/* top-right status + price */}
-                      <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
+                    <CardContent className="p-4 space-y-2">
+                      {/* Client name with status badge */}
+                      <div className="flex justify-between items-center">
+                        <div className="font-semibold text-gray-900">{booking.name}</div>
                         <Badge className={getStatusColor("completed")}>Completed</Badge>
+                      </div>
+
+                      <div className="text-sm text-gray-600">{booking.email}</div>
+
+                      {/* Date/time with price */}
+                      <div className="flex justify-between items-center">
+                        {booking.slot ? (
+                          <div className="text-sm text-gray-600">
+                            {formatDate((booking as any).slot.date)} {(booking as any).slot.time}
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-500 italic">Slot removed</div>
+                        )}
+
                         {(booking as any).slot && (
                           <div className="text-sm font-semibold text-gray-900">
                             {formatINR((booking as any).slot.price)}
                           </div>
                         )}
                       </div>
-
-                      <div className="font-semibold text-gray-900">{booking.name}</div>
-                      <div className="text-sm text-gray-600">{booking.email}</div>
-
-                      {booking.slot ? (
-                        <div className="text-sm text-gray-600">
-                          {formatDate((booking as any).slot.date)} {(booking as any).slot.time}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-gray-500 italic">Slot removed</div>
-                      )}
                     </CardContent>
                   </Card>
                 ))}
