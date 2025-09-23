@@ -198,7 +198,13 @@ export default function BookingPage() {
                ondismiss: function () {
                   setIsSubmitting(false);
                   // Redirect to failure page for cancelled payment
-                  router.push('/booking/failure?error=Payment cancelled by user');
+                  fetch("/api/payments/fail", {
+                     method: "POST",
+                     headers: { "Content-Type": "application/json" },
+                     body: JSON.stringify({ bookingId: booking._id, error: "Payment cancelled by user" }),
+                  }).finally(() => {
+                     router.push('/booking/failure?error=Payment cancelled by user');
+                  });
                }
             },
             theme: {
@@ -217,9 +223,18 @@ export default function BookingPage() {
 
          const rzp = new window.Razorpay(options);
 
-         rzp.on('payment.failed', function (response: any) {
+         rzp.on('payment.failed', async function (response: any) {
             console.error('Payment failed:', response.error);
-            // Redirect to failure page with Razorpay error details
+            // Call fail API to cancel booking + free slot
+            await fetch("/api/payments/fail", {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify({
+                  bookingId: booking._id,
+                  error: response.error.description || 'Payment failed'
+               }),
+            });
+
             const queryString = new URLSearchParams({
                error: response.error.description || 'Payment failed',
                code: response.error.code || '',
@@ -415,10 +430,10 @@ export default function BookingPage() {
                                  <div
                                     key={slot._id}
                                     className={`border rounded-lg p-4 cursor-pointer transition-all ${!slot.available || isSubmitting
-                                          ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
-                                          : formData.selectedSlot === slot._id
-                                             ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
-                                             : "border-gray-200 hover:border-rose-300 hover:bg-rose-25 hover:shadow-sm"
+                                       ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
+                                       : formData.selectedSlot === slot._id
+                                          ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
+                                          : "border-gray-200 hover:border-rose-300 hover:bg-rose-25 hover:shadow-sm"
                                        }`}
                                     onClick={() => slot.available && !isSubmitting && handleInputChange("selectedSlot", slot._id)}
                                  >
@@ -445,8 +460,8 @@ export default function BookingPage() {
                         type="submit"
                         size="lg"
                         className={`px-12 py-4 text-lg font-semibold ${isFormValid && !isSubmitting
-                              ? "bg-rose-500 hover:bg-rose-600 text-white"
-                              : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                           ? "bg-rose-500 hover:bg-rose-600 text-white"
+                           : "bg-gray-300 text-gray-600 cursor-not-allowed"
                            }`}
                         disabled={!isFormValid || isSubmitting}
                      >
