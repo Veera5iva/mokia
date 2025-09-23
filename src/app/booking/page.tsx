@@ -1,18 +1,25 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState } from "react"
-import useSWR from "swr"
-import { TimeSlot } from "@/interfaces/interfaces"
-import { Input, Label, Textarea, Button } from "@/components/ui"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Clock, Heart, ArrowLeft, User, MessageSquare, Calendar } from "lucide-react"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import useSWR from "swr";
+import { TimeSlot } from "@/interfaces/interfaces";
+import { Input, Label, Textarea, Button } from "@/components/ui";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Clock, Heart, ArrowLeft, User, MessageSquare, Calendar, Loader2 } from "lucide-react";
+import Link from "next/link";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+declare global {
+   interface Window {
+      Razorpay: any;
+   }
+}
 
 export default function BookingPage() {
-   const { data: slots, mutate: mutateSlots } = useSWR<TimeSlot[]>("/api/slots", fetcher)
+   const { data: slots, mutate: mutateSlots, error: slotsError } = useSWR<TimeSlot[]>("/api/slots", fetcher);
    const [formData, setFormData] = useState({
       name: "",
       email: "",
@@ -20,8 +27,39 @@ export default function BookingPage() {
       problem: "",
       problemType: "",
       selectedSlot: "",
-   })
-   const [isSubmitting, setIsSubmitting] = useState(false)
+   });
+   const [isSubmitting, setIsSubmitting] = useState(false);
+   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+   const [loadingRazorpay, setLoadingRazorpay] = useState(false);
+
+   // Load Razorpay script
+   const loadRazorpayScript = (): Promise<boolean> => {
+      return new Promise((resolve) => {
+         if (window.Razorpay) {
+            setRazorpayLoaded(true);
+            resolve(true);
+            return;
+         }
+
+         const script = document.createElement('script');
+         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+         script.async = true;
+         script.onload = () => {
+            setRazorpayLoaded(true);
+            resolve(true);
+         };
+         script.onerror = () => {
+            console.error('Failed to load Razorpay script');
+            resolve(false);
+         };
+         document.body.appendChild(script);
+      });
+   };
+
+   // Load Razorpay on component mount
+   useEffect(() => {
+      loadRazorpayScript();
+   }, []);
 
    const problemTypes = [
       "Love Failure / Breakup",
@@ -31,63 +69,225 @@ export default function BookingPage() {
       "Relationship Problems",
       "Emotional Trauma",
       "Other",
-   ]
+   ];
 
    const handleInputChange = (field: string, value: string) => {
-      setFormData(prev => ({ ...prev, [field]: value }))
-   }
+      setFormData(prev => ({ ...prev, [field]: value }));
+   };
+
+   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+      // You can replace this with a proper toast library like react-hot-toast
+      const emoji = type === 'success' ? '🎉' : '❌';
+      alert(`${emoji} ${message}`);
+   };
 
    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault()
-      if (isSubmitting) return
-      setIsSubmitting(true)
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      // Validate form
+      if (!isFormValid) {
+         showToast('Please fill in all required fields', 'error');
+         return;
+      }
+
+      setIsSubmitting(true);
+      setLoadingRazorpay(true);
 
       try {
+         // Ensure Razorpay is loaded
+         if (!razorpayLoaded) {
+            const loaded = await loadRazorpayScript();
+            if (!loaded) {
+               throw new Error('Failed to load Razorpay. Please try again.');
+            }
+         }
+
+         // Step 1: Create booking
          const res = await fetch("/api/bookings", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...formData, slotId: formData.selectedSlot }),
-         })
-         const data = await res.json()
-         if (res.ok) {
-            alert("Booking successful!")
-            setFormData({
-               name: "",
-               email: "",
-               phone: "",
-               problem: "",
-               problemType: "",
-               selectedSlot: "",
-            })
-            mutateSlots() // refresh available slots
-         } else {
-            alert(data.error || "Booking failed")
+            body: JSON.stringify({
+               ...formData,
+               slotId: formData.selectedSlot
+            }),
+         });
+
+         if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
          }
-      } catch (err) {
-         console.error(err)
-         alert("Booking failed")
+
+         const booking = await res.json();
+
+         // Step 2: Create Razorpay order
+         const orderRes = await fetch("/api/payments/create-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bookingId: booking._id }),
+         });
+
+         if (!orderRes.ok) {
+            const errorData = await orderRes.json();
+            throw new Error(errorData.error || `Payment order creation failed! status: ${orderRes.status}`);
+         }
+
+         const orderData = await orderRes.json();
+         setLoadingRazorpay(false);
+
+         // Step 3: Open Razorpay popup
+         const options = {
+            key: orderData.key,
+            amount: orderData.amount,
+            currency: orderData.currency || 'INR',
+            name: "HeartHeal",
+            description: "Healing Session Payment",
+            order_id: orderData.orderId,
+            prefill: {
+               name: formData.name,
+               email: formData.email,
+               contact: formData.phone,
+            },
+            handler: async function (response: any) {
+               try {
+                  setIsSubmitting(true);
+                  // Step 4: Verify payment
+                  const verifyRes = await fetch("/api/payments/verify", {
+                     method: "POST",
+                     headers: { "Content-Type": "application/json" },
+                     body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                        bookingId: booking._id,
+                     }),
+                  });
+
+                  if (!verifyRes.ok) {
+                     throw new Error('Payment verification request failed');
+                  }
+
+                  const verifyData = await verifyRes.json();
+                  if (verifyData.success) {
+                     showToast('Payment successful & booking confirmed!', 'success');
+                     // Reset form
+                     setFormData({
+                        name: "",
+                        email: "",
+                        phone: "",
+                        problem: "",
+                        problemType: "",
+                        selectedSlot: "",
+                     });
+                     // Refresh slots
+                     mutateSlots();
+                  } else {
+                     throw new Error(verifyData.error || 'Payment verification failed');
+                  }
+               } catch (err: any) {
+                  console.error("Payment verification error:", err);
+                  showToast(err.message || 'Payment verification failed', 'error');
+               } finally {
+                  setIsSubmitting(false);
+               }
+            },
+            modal: {
+               ondismiss: function () {
+                  setIsSubmitting(false);
+                  showToast('Payment cancelled', 'error');
+               }
+            },
+            theme: {
+               color: "#e11d48",
+            },
+            timeout: 300, // 5 minutes timeout
+            retry: {
+               enabled: false
+            }
+         };
+
+         // Check if Razorpay is available before creating instance
+         if (!window.Razorpay) {
+            throw new Error('Razorpay failed to load. Please refresh the page and try again.');
+         }
+
+         const rzp = new window.Razorpay(options);
+
+         rzp.on('payment.failed', function (response: any) {
+            console.error('Payment failed:', response.error);
+            showToast(`Payment failed: ${response.error.description}`, 'error');
+            setIsSubmitting(false);
+         });
+
+         rzp.open();
+
+      } catch (err: any) {
+         console.error('Booking error:', err);
+         showToast(err.message || 'Something went wrong. Please try again.', 'error');
       } finally {
-         setIsSubmitting(false)
+         if (!loadingRazorpay) {
+            setIsSubmitting(false);
+         }
       }
-   }
+   };
 
    const formatDate = (dateString: string) => {
-      const date = new Date(dateString)
-      return date.toLocaleDateString("en-US", {
-         weekday: "long",
-         year: "numeric",
-         month: "long",
-         day: "numeric",
-      })
+      try {
+         const date = new Date(dateString);
+         if (isNaN(date.getTime())) {
+            return 'Invalid Date';
+         }
+         return date.toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+         });
+      } catch (error) {
+         console.error('Date formatting error:', error);
+         return 'Invalid Date';
+      }
+   };
+
+   const isFormValid = Boolean(
+      formData.name.trim() &&
+      formData.email.trim() &&
+      formData.problem.trim() &&
+      formData.problemType &&
+      formData.selectedSlot
+   );
+
+   // Loading states
+   if (!slots && !slotsError) {
+      return (
+         <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center">
+            <div className="text-center">
+               <Loader2 className="h-8 w-8 animate-spin text-rose-500 mx-auto mb-4" />
+               <p className="text-gray-600">Loading available slots...</p>
+            </div>
+         </div>
+      );
    }
 
-   const isFormValid = formData.name && formData.email && formData.problem && formData.problemType && formData.selectedSlot
+   // Error state
+   if (slotsError) {
+      return (
+         <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center">
+            <div className="text-center">
+               <p className="text-red-600 mb-4">Failed to load booking slots</p>
+               <Button onClick={() => window.location.reload()}>
+                  Retry
+               </Button>
+            </div>
+         </div>
+      );
+   }
 
    return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
          <header className="container mx-auto px-4 py-6">
             <nav className="flex items-center justify-between">
-               <Link href="/" className="flex items-center gap-2">
+               <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                   <ArrowLeft className="h-5 w-5 text-rose-500" />
                   <Heart className="h-8 w-8 text-rose-500" />
                   <span className="text-2xl font-bold text-gray-900">HeartHeal</span>
@@ -119,7 +319,9 @@ export default function BookingPage() {
                                  type="text"
                                  value={formData.name}
                                  onChange={e => handleInputChange("name", e.target.value)}
+                                 placeholder="Enter your full name"
                                  required
+                                 disabled={isSubmitting}
                               />
                            </div>
                            <div>
@@ -129,7 +331,9 @@ export default function BookingPage() {
                                  type="email"
                                  value={formData.email}
                                  onChange={e => handleInputChange("email", e.target.value)}
+                                 placeholder="Enter your email"
                                  required
+                                 disabled={isSubmitting}
                               />
                            </div>
                         </div>
@@ -140,6 +344,8 @@ export default function BookingPage() {
                               type="tel"
                               value={formData.phone}
                               onChange={e => handleInputChange("phone", e.target.value)}
+                              placeholder="Enter your phone number"
+                              disabled={isSubmitting}
                            />
                         </div>
                      </CardContent>
@@ -155,7 +361,11 @@ export default function BookingPage() {
                      <CardContent className="space-y-4">
                         <div>
                            <Label htmlFor="problemType">Issue Type *</Label>
-                           <Select onValueChange={v => handleInputChange("problemType", v)}>
+                           <Select
+                              onValueChange={v => handleInputChange("problemType", v)}
+                              disabled={isSubmitting}
+                              value={formData.problemType}
+                           >
                               <SelectTrigger>
                                  <SelectValue placeholder="Select issue type" />
                               </SelectTrigger>
@@ -169,12 +379,15 @@ export default function BookingPage() {
                            </Select>
                         </div>
                         <div>
-                           <Label htmlFor="problem">Describe *</Label>
+                           <Label htmlFor="problem">Describe Your Situation *</Label>
                            <Textarea
+                              id="problem"
                               value={formData.problem}
                               onChange={e => handleInputChange("problem", e.target.value)}
+                              placeholder="Please describe your situation in detail..."
                               required
                               className="mt-1 min-h-[120px]"
+                              disabled={isSubmitting}
                            />
                         </div>
                      </CardContent>
@@ -184,29 +397,39 @@ export default function BookingPage() {
                   <Card>
                      <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                           <Calendar className="h-5 w-5 text-rose-500" /> Choose Slot
+                           <Calendar className="h-5 w-5 text-rose-500" /> Choose Time Slot *
                         </CardTitle>
                      </CardHeader>
-                     <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {slots?.map((slot: TimeSlot) => (
-                           <div
-                              key={slot._id}
-                              className={`border rounded-lg p-4 cursor-pointer transition-all ${!slot.available
-                                 ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
-                                 : formData.selectedSlot === slot._id
-                                    ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
-                                    : "border-gray-200 hover:border-rose-300 hover:bg-rose-25"
-                                 }`}
-                              onClick={() => slot.available && handleInputChange("selectedSlot", slot._id)}
-                           >
-                              <div className="text-sm font-medium text-gray-900">{formatDate(slot.date)}</div>
-                              <div className="flex items-center gap-1 mt-1">
-                                 <Clock className="h-4 w-4 text-rose-500" />
-                                 <span className="text-sm text-gray-600">{slot.time}</span>
-                              </div>
-                              {!slot.available && <div className="text-xs text-gray-500 mt-1">Unavailable</div>}
+                     <CardContent>
+                        {!slots || slots.length === 0 ? (
+                           <p className="text-center text-gray-500 py-8">No available slots at the moment</p>
+                        ) : (
+                           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {slots.map((slot: TimeSlot) => (
+                                 <div
+                                    key={slot._id}
+                                    className={`border rounded-lg p-4 cursor-pointer transition-all ${!slot.available || isSubmitting
+                                          ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
+                                          : formData.selectedSlot === slot._id
+                                             ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
+                                             : "border-gray-200 hover:border-rose-300 hover:bg-rose-25 hover:shadow-sm"
+                                       }`}
+                                    onClick={() => slot.available && !isSubmitting && handleInputChange("selectedSlot", slot._id)}
+                                 >
+                                    <div className="text-sm font-medium text-gray-900">
+                                       {formatDate(slot.date)}
+                                    </div>
+                                    <div className="flex items-center gap-1 mt-1">
+                                       <Clock className="h-4 w-4 text-rose-500" />
+                                       <span className="text-sm text-gray-600">{slot.time}</span>
+                                    </div>
+                                    {!slot.available && (
+                                       <div className="text-xs text-red-500 mt-1 font-medium">Unavailable</div>
+                                    )}
+                                 </div>
+                              ))}
                            </div>
-                        ))}
+                        )}
                      </CardContent>
                   </Card>
 
@@ -215,18 +438,28 @@ export default function BookingPage() {
                      <Button
                         type="submit"
                         size="lg"
-                        className={`px-12 py-4 text-lg ${isFormValid
-                           ? "bg-rose-500 hover:bg-rose-600 text-white"
-                           : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        className={`px-12 py-4 text-lg font-semibold ${isFormValid && !isSubmitting
+                              ? "bg-rose-500 hover:bg-rose-600 text-white"
+                              : "bg-gray-300 text-gray-600 cursor-not-allowed"
                            }`}
                         disabled={!isFormValid || isSubmitting}
                      >
-                        Proceed to Payment
+                        {isSubmitting ? (
+                           <>
+                              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                              {loadingRazorpay ? 'Preparing Payment...' : 'Processing...'}
+                           </>
+                        ) : (
+                           'Proceed to Payment'
+                        )}
                      </Button>
+                     {!razorpayLoaded && (
+                        <p className="text-sm text-gray-500 mt-2">Loading payment gateway...</p>
+                     )}
                   </div>
                </form>
             </div>
          </div>
       </div>
-   )
+   );
 }
