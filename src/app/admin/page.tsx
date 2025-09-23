@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Clock, Plus, Edit, Trash2, Heart, Settings, Users } from "lucide-react"
 import Link from "next/link"
 
@@ -323,18 +324,22 @@ export default function AdminPage() {
                         />
                       </div>
 
-                      <div>
-                        <Label>Priority</Label>
-                        <select
+                      <div className="flex flex-col gap-1">
+                        <Label htmlFor="priority">Priority</Label>
+                        <Select
                           value={newSlot.priority}
-                          onChange={(e) =>
-                            setNewSlot({ ...newSlot, priority: e.target.value as "normal" | "priority" })
+                          onValueChange={(value) =>
+                            setNewSlot({ ...newSlot, priority: value as "normal" | "priority" })
                           }
-                          className="mt-1 block w-full rounded-md border px-2 py-2"
                         >
-                          <option value="normal">Normal</option>
-                          <option value="priority">Priority (Gold)</option>
-                        </select>
+                          <SelectTrigger id="priority">
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="normal">Normal</SelectItem>
+                            <SelectItem value="priority">Priority (Gold)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div>
