@@ -387,7 +387,7 @@ export default function AdminPage() {
                     key={slot._id}
                     className={`${slot.booked ? "border-green-200 bg-green-50" : slot.available ? "border-rose-200" : "border-gray-200 bg-gray-50"}${slot.priority === "priority" ? " border-purple-400" : ""}`}
                   >
-                    <CardContent className="relative p-4">
+                    <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <div className="font-medium text-gray-900">{formatDate(slot.date)}</div>
@@ -422,12 +422,15 @@ export default function AdminPage() {
                         <Badge variant={slot.booked ? "default" : slot.available ? "available" : "disabled"}>
                           {slot.booked ? "Booked" : slot.available ? "Available" : "Disabled"}
                         </Badge>
-
-                        {slot.clientName && <span className="text-sm text-gray-600">Client: {slot.clientName}</span>}
+                        <div className="text-sm font-semibold text-gray-900">
+                          {formatINR((slot as any).price)}
+                        </div>
                       </div>
-                      <div className="absolute right-4 bottom-3 text-sm font-semibold text-gray-900">
-                        {formatINR((slot as any).price)}
-                      </div>
+                      {slot.clientName && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          Client: {slot.clientName}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
