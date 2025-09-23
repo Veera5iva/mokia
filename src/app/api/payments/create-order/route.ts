@@ -40,6 +40,11 @@ export async function POST(req: Request) {
          currency: "INR",
          status: "created",
       };
+
+      booking.status = "pending"; // not confirmed yet
+      await booking.save();
+
+      
       // Mark slot temporarily unavailable (reserved) to avoid double booking while payment completes
       slot.available = false;
       await slot.save();
@@ -52,8 +57,6 @@ export async function POST(req: Request) {
          amount: order.amount,
          currency: order.currency
       });
-
-
 
    } catch (error) {
       console.error("Error creating Razorpay order:", error);
