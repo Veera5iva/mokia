@@ -211,7 +211,7 @@ export default function BookingPage() {
                <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                   <ArrowLeft className="h-5 w-5 text-rose-500" />
                   <Heart className="h-8 w-8 text-rose-500" />
-                  <span className="text-2xl font-bold text-gray-900">HeartHeal</span>
+                  <span className="text-2xl font-bold text-gray-900">Mokia</span>
                </Link>
             </nav>
          </header>
