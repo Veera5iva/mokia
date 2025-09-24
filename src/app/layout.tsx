@@ -1,4 +1,5 @@
 import type React from "react"
+import Providers from "./providers"
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
@@ -21,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={null}>{children}</Suspense>
+        <Providers>
+          <Suspense fallback={null}>{children}</Suspense>
+        </Providers>
         <Analytics />
       </body>
     </html>
