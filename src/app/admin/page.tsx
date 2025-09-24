@@ -3,6 +3,7 @@
 
 import { useState } from "react"
 import useSWR from "swr"
+import toast, { Toaster } from "react-hot-toast"
 import { signOut } from "next-auth/react"
 import type { TimeSlot, Booking } from "@/interfaces/interfaces"
 import { Button } from "@/components/ui/button"
@@ -145,11 +146,13 @@ export default function AdminPage() {
 
   const handleSignOut = async () => {
     await signOut({ redirect: false })
+    toast.success("Signed out successfully!")
     window.location.href = "/"
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
+       <Toaster position="top-right" reverseOrder={false} />
       {/* Status Dialog */}
       {showStatusDialog && selectedBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

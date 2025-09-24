@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Heart, Users, Clock, Shield, Star, ArrowRight } from "lucide-react"
+import { Heart, Users, Clock, Shield, ArrowRight } from "lucide-react"
+import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards"
+import testimonials from "@/data/testimonials"
 
 export default function HomePage() {
    const [isVisible, setIsVisible] = useState(false)
@@ -19,7 +21,7 @@ export default function HomePage() {
             <nav className="flex items-center justify-between">
                <div className="flex items-center gap-2">
                   <Heart className="h-8 w-8 text-rose-500" />
-                  <span className="text-2xl font-bold text-gray-900">HeartHeal</span>
+                  <span className="text-2xl font-bold text-gray-900">Mokia</span>
                </div>
                <Button variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50 bg-transparent">
                   Contact Us
@@ -56,6 +58,7 @@ export default function HomePage() {
                         size="lg"
                         variant="outline"
                         className="border-rose-200 text-rose-600 hover:bg-rose-50 px-8 py-4 text-lg bg-transparent"
+                        onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
                      >
                         Learn More
                      </Button>
@@ -81,9 +84,9 @@ export default function HomePage() {
          </section>
 
          {/* Features Section */}
-         <section className="container mx-auto px-4 py-20">
+         <section id="features" className="container mx-auto px-4 py-20">
             <div className="text-center mb-16">
-               <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose HeartHeal?</h2>
+               <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Mokia?</h2>
                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                   Professional support tailored to your unique journey of healing and growth
                </p>
@@ -127,43 +130,18 @@ export default function HomePage() {
          </section>
 
          {/* Testimonials */}
-         <section className="bg-rose-50 py-20">
+         <section>
             <div className="container mx-auto px-4">
-               <div className="text-center mb-16">
-                  <h2 className="text-4xl font-bold text-gray-900 mb-4">Success Stories</h2>
-                  <p className="text-xl text-gray-600">Real people, real transformations</p>
-               </div>
-
-               <div className="grid md:grid-cols-3 gap-8">
-                  {[
-                     {
-                        name: "Sarah M.",
-                        text: "After my breakup, I felt lost and hopeless. The sessions helped me rediscover my worth and build a better relationship with myself.",
-                        rating: 5,
-                     },
-                     {
-                        name: "Michael R.",
-                        text: "Professional, compassionate, and effective. I learned coping strategies that I still use today. Highly recommended!",
-                        rating: 5,
-                     },
-                     {
-                        name: "Emma L.",
-                        text: "The support I received was exactly what I needed during my darkest time. I'm now stronger and more confident than ever.",
-                        rating: 5,
-                     },
-                  ].map((testimonial, index) => (
-                     <Card key={index} className="bg-white border-rose-100">
-                        <CardContent className="p-6">
-                           <div className="flex mb-4">
-                              {[...Array(testimonial.rating)].map((_, i) => (
-                                 <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                              ))}
-                           </div>
-                           <p className="text-gray-600 mb-4 italic">`{testimonial.text}`</p>
-                           <p className="font-semibold text-gray-900">- {testimonial.name}</p>
-                        </CardContent>
-                     </Card>
-                  ))}
+               <div className="h-[40rem] rounded-md flex flex-col antialiased bg-white dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden">
+                  <div className="text-center mb-16">
+                     <h2 className="text-4xl font-bold text-gray-900 mb-4">Success Stories</h2>
+                     <p className="text-xl text-gray-600">Real people, real transformations</p>
+                  </div>
+                  <InfiniteMovingCards
+                     items={testimonials}
+                     direction="right"
+                     speed="slow"
+                  />
                </div>
             </div>
          </section>
@@ -207,7 +185,7 @@ export default function HomePage() {
          {/* CTA Section */}
          <section id="booking" className="bg-gradient-to-r from-rose-500 to-pink-600 py-20">
             <div className="container mx-auto px-4 text-center">
-               <h2 className="text-4xl font-bold text-white mb-4">Ready to Start Your Healing Journey?</h2>
+               <h2 className="text-4xl font-bold text-white mb-4">Ready to Start Your Next Chapter?</h2>
                <p className="text-xl text-rose-100 mb-8 max-w-2xl mx-auto">
                   Take the first step towards emotional freedom and personal growth. Book your session today.
                </p>
@@ -229,7 +207,7 @@ export default function HomePage() {
                   <div>
                      <div className="flex items-center gap-2 mb-4">
                         <Heart className="h-6 w-6 text-rose-500" />
-                        <span className="text-xl font-bold">HeartHeal</span>
+                        <span className="text-xl font-bold">Mokia</span>
                      </div>
                      <p className="text-gray-400">
                         Professional counseling for love failure, depression, and personal growth.

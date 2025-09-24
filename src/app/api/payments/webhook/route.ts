@@ -3,25 +3,17 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { connect } from "@/dbConfig/dbConfig";
 import { Booking } from "@/models/Booking";
+import { sendAdminBookingEmail, sendUserBookingEmail } from "@/lib/mailer"; // <-- import
 
 connect();
 
 export async function POST(req: Request) {
    try {
       const secret = process.env.RAZORPAY_WEBHOOK_SECRET!;
-      const rawBody = await req.text(); // raw request body
+      const rawBody = await req.text();
       const signature = req.headers.get("x-razorpay-signature");
 
-      // console.log("🔔 Webhook received");
-      // console.log("Raw body:", rawBody);
-      // console.log("Signature header:", signature);
-
-      // Verify webhook signature
-      const expectedSignature = crypto
-         .createHmac("sha256", secret)
-         .update(rawBody)
-         .digest("hex");
-
+      const expectedSignature = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
       if (signature !== expectedSignature) {
          console.error("❌ Invalid webhook signature");
          return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
@@ -29,9 +21,6 @@ export async function POST(req: Request) {
 
       const event = JSON.parse(rawBody);
 
-      // console.log("📦 Event parsed:", JSON.stringify(event, null, 2));
-
-      // Handle specific events
       if (event.event === "payment.captured") {
          const { order_id, id: payment_id } = event.payload.payment.entity;
 
@@ -40,10 +29,26 @@ export async function POST(req: Request) {
             booking.payment.razorpay_payment_id = payment_id;
             booking.payment.status = "paid";
             booking.status = "confirmed";
-            booking.slot.available = false;
-            await booking.slot.save();
+
+            if (booking.slot) {
+               booking.slot.available = false;
+               await booking.slot.save();
+            }
+
             await booking.save();
-            // console.log(`✅ Booking ${booking._id} marked as paid via webhook`);
+            console.log(`✅ Booking ${booking._id} marked as paid via webhook`);
+
+            // Fire-and-forget email (do not block the webhook response)
+            // Fire-and-forget emails
+            sendAdminBookingEmail(booking)
+               .then(() => console.log("Admin email queued/sent"))
+               .catch((err) => console.error("Error sending admin email:", err));
+
+            sendUserBookingEmail(booking)
+               .then(() => console.log("User email queued/sent"))
+               .catch((err) => console.error("Error sending user email:", err));
+         } else {
+            console.warn("Booking not found for order:", order_id);
          }
       }
 
@@ -53,10 +58,13 @@ export async function POST(req: Request) {
          if (booking) {
             booking.payment.status = "failed";
             booking.status = "cancelled";
-            booking.slot.available = true;
-            await booking.slot.save();
+            if (booking.slot) {
+               booking.slot.available = true;
+               await booking.slot.save();
+            }
             await booking.save();
-            // console.log(`⚠️ Booking ${booking._id} marked as failed via webhook`);
+            // Optionally notify admin about failed payments
+            console.log(`❌ Booking ${booking._id} marked as failed via webhook`);
          }
       }
 
