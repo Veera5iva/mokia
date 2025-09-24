@@ -12,6 +12,10 @@ export async function POST(req: Request) {
       const rawBody = await req.text(); // raw request body
       const signature = req.headers.get("x-razorpay-signature");
 
+      // console.log("🔔 Webhook received");
+      // console.log("Raw body:", rawBody);
+      // console.log("Signature header:", signature);
+
       // Verify webhook signature
       const expectedSignature = crypto
          .createHmac("sha256", secret)
@@ -19,17 +23,18 @@ export async function POST(req: Request) {
          .digest("hex");
 
       if (signature !== expectedSignature) {
-         console.error("Invalid webhook signature");
+         console.error("❌ Invalid webhook signature");
          return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
       }
 
       const event = JSON.parse(rawBody);
 
+      // console.log("📦 Event parsed:", JSON.stringify(event, null, 2));
+
       // Handle specific events
       if (event.event === "payment.captured") {
          const { order_id, id: payment_id } = event.payload.payment.entity;
 
-         // Find booking by razorpay_order_id
          const booking = await Booking.findOne({ "payment.razorpay_order_id": order_id }).populate("slot");
          if (booking) {
             booking.payment.razorpay_payment_id = payment_id;
@@ -38,7 +43,7 @@ export async function POST(req: Request) {
             booking.slot.available = false;
             await booking.slot.save();
             await booking.save();
-            console.log(`Booking ${booking._id} marked as paid via webhook`);
+            // console.log(`✅ Booking ${booking._id} marked as paid via webhook`);
          }
       }
 
@@ -48,10 +53,10 @@ export async function POST(req: Request) {
          if (booking) {
             booking.payment.status = "failed";
             booking.status = "cancelled";
-            booking.slot.available = true; // free up the slot again
+            booking.slot.available = true;
             await booking.slot.save();
             await booking.save();
-            console.log(`Booking ${booking._id} marked as failed via webhook`);
+            // console.log(`⚠️ Booking ${booking._id} marked as failed via webhook`);
          }
       }
 
