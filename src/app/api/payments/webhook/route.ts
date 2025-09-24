@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { connect } from "@/dbConfig/dbConfig";
 import { Booking } from "@/models/Booking";
-import { sendAdminBookingEmail } from "@/lib/mailer"; // <-- import
+import { sendAdminBookingEmail, sendUserBookingEmail } from "@/lib/mailer"; // <-- import
 
 connect();
 
@@ -39,9 +39,14 @@ export async function POST(req: Request) {
             console.log(`✅ Booking ${booking._id} marked as paid via webhook`);
 
             // Fire-and-forget email (do not block the webhook response)
+            // Fire-and-forget emails
             sendAdminBookingEmail(booking)
                .then(() => console.log("Admin email queued/sent"))
                .catch((err) => console.error("Error sending admin email:", err));
+
+            sendUserBookingEmail(booking)
+               .then(() => console.log("User email queued/sent"))
+               .catch((err) => console.error("Error sending user email:", err));
          } else {
             console.warn("Booking not found for order:", order_id);
          }
