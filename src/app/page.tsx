@@ -130,15 +130,13 @@ export default function HomePage() {
          </section>
 
          {/* Testimonials */}
-         <section className="bg-rose-50 py-20">
+         <section>
             <div className="container mx-auto px-4">
-               
-
                <div className="h-[40rem] rounded-md flex flex-col antialiased bg-white dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden">
-               <div className="text-center mb-16">
-                  <h2 className="text-4xl font-bold text-gray-900 mb-4">Success Stories</h2>
-                  <p className="text-xl text-gray-600">Real people, real transformations</p>
-               </div>
+                  <div className="text-center mb-16">
+                     <h2 className="text-4xl font-bold text-gray-900 mb-4">Success Stories</h2>
+                     <p className="text-xl text-gray-600">Real people, real transformations</p>
+                  </div>
                   <InfiniteMovingCards
                      items={testimonials}
                      direction="right"
@@ -187,7 +185,7 @@ export default function HomePage() {
          {/* CTA Section */}
          <section id="booking" className="bg-gradient-to-r from-rose-500 to-pink-600 py-20">
             <div className="container mx-auto px-4 text-center">
-               <h2 className="text-4xl font-bold text-white mb-4">Ready to Start Your Healing Journey?</h2>
+               <h2 className="text-4xl font-bold text-white mb-4">Ready to Start Your Next Chapter?</h2>
                <p className="text-xl text-rose-100 mb-8 max-w-2xl mx-auto">
                   Take the first step towards emotional freedom and personal growth. Book your session today.
                </p>
@@ -209,7 +207,7 @@ export default function HomePage() {
                   <div>
                      <div className="flex items-center gap-2 mb-4">
                         <Heart className="h-6 w-6 text-rose-500" />
-                        <span className="text-xl font-bold">HeartHeal</span>
+                        <span className="text-xl font-bold">Mokia</span>
                      </div>
                      <p className="text-gray-400">
                         Professional counseling for love failure, depression, and personal growth.
