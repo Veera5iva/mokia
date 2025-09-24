@@ -221,7 +221,7 @@ export default function BookingPage() {
          const rzp = new window.Razorpay(options);
 
          rzp.on("payment.failed", async function (response: any) {
-            console.error("Payment failed:", response.error);
+            // console.error("Payment failed:", response.error);
 
             await fetch("/api/payments/update", {
                method: "POST",
