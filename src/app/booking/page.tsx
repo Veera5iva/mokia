@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { TimeSlot } from "@/interfaces/interfaces";
 import { Input, Label, Textarea, Button } from "@/components/ui";
@@ -20,7 +19,6 @@ declare global {
 }
 
 export default function BookingPage() {
-   const router = useRouter();
    const { data: slots, mutate: mutateSlots, error: slotsError } = useSWR<TimeSlot[]>("/api/slots", fetcher);
    const [formData, setFormData] = useState({
       name: "",
@@ -58,7 +56,6 @@ export default function BookingPage() {
       });
    };
 
-   // Load Razorpay on component mount
    useEffect(() => {
       loadRazorpayScript();
    }, []);
@@ -77,57 +74,61 @@ export default function BookingPage() {
       setFormData((prev) => ({ ...prev, [field]: value }));
    };
 
+   const isFormValid = Boolean(
+      formData.name.trim() &&
+      formData.email.trim() &&
+      formData.problem.trim() &&
+      formData.problemType &&
+      formData.selectedSlot
+   );
+
+   const formatDate = (dateString: string) => {
+      try {
+         const date = new Date(dateString);
+         if (isNaN(date.getTime())) return "Invalid Date";
+         return date.toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+         });
+      } catch {
+         return "Invalid Date";
+      }
+   };
+
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (isSubmitting) return;
-
-      if (!isFormValid) return;
+      if (isSubmitting || !isFormValid) return;
 
       setIsSubmitting(true);
-      setLoadingRazorpay(true);
+      setLoadingRazorpay(true); // show loading until redirect
 
       try {
-         // Ensure Razorpay is loaded
          if (!razorpayLoaded) {
             const loaded = await loadRazorpayScript();
-            if (!loaded) {
-               throw new Error("Failed to load payment gateway. Please try again.");
-            }
+            if (!loaded) throw new Error("Failed to load payment gateway. Please try again.");
          }
 
-         // Step 1: Create booking
+         // 1️⃣ Create booking
          const res = await fetch("/api/bookings", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-               ...formData,
-               slotId: formData.selectedSlot,
-            }),
+            body: JSON.stringify({ ...formData, slotId: formData.selectedSlot }),
          });
-
-         if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-         }
-
+         if (!res.ok) throw new Error("Booking creation failed");
          const booking = await res.json();
 
-         // Step 2: Create Razorpay order
+         // 2️⃣ Create Razorpay order
          const orderRes = await fetch("/api/payments/create-order", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ bookingId: booking._id }),
          });
-
-         if (!orderRes.ok) {
-            const errorData = await orderRes.json();
-            throw new Error(errorData.error || `Payment order creation failed! status: ${orderRes.status}`);
-         }
-
+         if (!orderRes.ok) throw new Error("Payment order creation failed");
          const orderData = await orderRes.json();
-         setLoadingRazorpay(false);
 
-         // Step 3: Open Razorpay popup
+         // 3️⃣ Razorpay options
          const options = {
             key: orderData.key,
             amount: orderData.amount,
@@ -135,17 +136,14 @@ export default function BookingPage() {
             name: "HeartHeal",
             description: "Healing Session Payment",
             order_id: orderData.orderId,
-            prefill: {
-               name: formData.name,
-               email: formData.email,
-               contact: formData.phone,
-            },
+            prefill: { name: formData.name, email: formData.email, contact: formData.phone },
             handler: async function (response: any) {
                try {
+                  // Keep loader active until redirect
+                  setLoadingRazorpay(true);
                   setIsSubmitting(true);
 
-                  // Call update API on success
-                  const updateRes = await fetch("/api/payments/update", {
+                  await fetch("/api/payments/update", {
                      method: "POST",
                      headers: { "Content-Type": "application/json" },
                      body: JSON.stringify({
@@ -157,129 +155,54 @@ export default function BookingPage() {
                      }),
                   });
 
-                  if (!updateRes.ok) {
-                     throw new Error("Payment update request failed");
-                  }
-
-                  const updateData = await updateRes.json();
-                  if (updateData.success) {
-                     // Redirect to success page
-                     const paymentDetails = {
-                        amount: orderData.amount / 100,
-                        date: new Date().toLocaleString(),
-                        reference: response.razorpay_payment_id,
-                        bookingId: booking._id,
-                     };
-
-                     const queryString = new URLSearchParams({
-                        amount: paymentDetails.amount.toString(),
-                        date: paymentDetails.date,
-                        reference: paymentDetails.reference,
-                        bookingId: paymentDetails.bookingId,
-                     }).toString();
-
-                     router.push(`/booking/success?${queryString}`);
-                  } else {
-                     throw new Error(updateData.error || "Payment update failed");
-                  }
+                  // ✅ Redirect to new BookingConfirmedPage
+                  window.location.href = `/booking/confirmed?bookingId=${booking._id}`;
                } catch (err: any) {
-                  console.error("Payment update error:", err);
-                  const queryString = new URLSearchParams({
-                     error: err.message || "Payment update failed",
-                     orderId: orderData.orderId,
-                  }).toString();
-                  router.push(`/booking/failure?${queryString}`);
+                  window.location.href = `/booking/failed?bookingId=${booking._id}&error=${encodeURIComponent(err.message || "Payment update failed")}`;
                }
             },
             modal: {
                ondismiss: async function () {
-                  setIsSubmitting(false);
+                  // Keep loader until redirect
+                  setIsSubmitting(true);
+                  setLoadingRazorpay(true);
+
                   await fetch("/api/payments/update", {
                      method: "POST",
                      headers: { "Content-Type": "application/json" },
-                     body: JSON.stringify({
-                        status: "failed",
-                        bookingId: booking._id,
-                     }),
+                     body: JSON.stringify({ status: "failed", bookingId: booking._id }),
                   });
-                  router.push("/booking/failure?error=Payment cancelled by user");
+                  window.location.href = `/booking/failed?bookingId=${booking._id}&error=${encodeURIComponent("Payment cancelled by user")}`;
                },
             },
-            theme: {
-               color: "#e11d48",
-            },
+            theme: { color: "#e11d48" },
             timeout: 300,
-            retry: {
-               enabled: false,
-            },
+            retry: { enabled: false },
          };
 
-         if (!window.Razorpay) {
-            throw new Error("Payment gateway failed to load. Please refresh the page and try again.");
-         }
+         if (!window.Razorpay) throw new Error("Payment gateway failed to load.");
 
          const rzp = new window.Razorpay(options);
 
          rzp.on("payment.failed", async function (response: any) {
-            // console.error("Payment failed:", response.error);
+            setIsSubmitting(true);
+            setLoadingRazorpay(true);
 
             await fetch("/api/payments/update", {
                method: "POST",
                headers: { "Content-Type": "application/json" },
-               body: JSON.stringify({
-                  status: "failed",
-                  bookingId: booking._id,
-               }),
+               body: JSON.stringify({ status: "failed", bookingId: booking._id }),
             });
 
-            const queryString = new URLSearchParams({
-               error: response.error.description || "Payment failed",
-               code: response.error.code || "",
-               orderId: orderData.orderId,
-            }).toString();
-
-            router.push(`/booking/failure?${queryString}`);
+            window.location.href = `/booking/failed?bookingId=${booking._id}&error=${encodeURIComponent(response.error.description || "Payment failed")}`;
          });
 
          rzp.open();
       } catch (err: any) {
          console.error("Booking error:", err);
-         const queryString = new URLSearchParams({
-            error: err.message || "Something went wrong. Please try again.",
-         }).toString();
-         router.push(`/booking/failure?${queryString}`);
-      } finally {
-         if (!loadingRazorpay) {
-            setIsSubmitting(false);
-         }
+         window.location.href = `/booking/failed?error=${encodeURIComponent(err.message || "Something went wrong")}`;
       }
    };
-
-   const formatDate = (dateString: string) => {
-      try {
-         const date = new Date(dateString);
-         if (isNaN(date.getTime())) {
-            return "Invalid Date";
-         }
-         return date.toLocaleDateString("en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-         });
-      } catch (error) {
-         console.error("Date formatting error:", error);
-         return "Invalid Date";
-      }
-   };
-
-   const isFormValid = Boolean(
-      formData.name.trim() &&
-      formData.email.trim() &&
-      formData.problem.trim() &&
-      formData.problemType &&
-      formData.selectedSlot
-   );
 
    return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
@@ -419,25 +342,19 @@ export default function BookingPage() {
                                  <div
                                     key={slot._id}
                                     className={`border rounded-lg p-4 cursor-pointer transition-all ${!slot.available || isSubmitting
-                                          ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
-                                          : formData.selectedSlot === slot._id
-                                             ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
-                                             : "border-gray-200 hover:border-rose-300 hover:bg-rose-25 hover:shadow-sm"
+                                       ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
+                                       : formData.selectedSlot === slot._id
+                                          ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
+                                          : "border-gray-200 hover:border-rose-300 hover:bg-rose-25 hover:shadow-sm"
                                        }`}
-                                    onClick={() =>
-                                       slot.available &&
-                                       !isSubmitting &&
-                                       handleInputChange("selectedSlot", slot._id)
-                                    }
+                                    onClick={() => slot.available && !isSubmitting && handleInputChange("selectedSlot", slot._id)}
                                  >
                                     <div className="text-sm font-medium text-gray-900">{formatDate(slot.date)}</div>
                                     <div className="flex items-center gap-1 mt-1">
                                        <Clock className="h-4 w-4 text-rose-500" />
                                        <span className="text-sm text-gray-600">{slot.time}</span>
                                     </div>
-                                    {!slot.available && (
-                                       <div className="text-xs text-red-500 mt-1 font-medium">Unavailable</div>
-                                    )}
+                                    {!slot.available && <div className="text-xs text-red-500 mt-1 font-medium">Unavailable</div>}
                                  </div>
                               ))}
                            </div>
@@ -450,9 +367,7 @@ export default function BookingPage() {
                      <Button
                         type="submit"
                         size="lg"
-                        className={`px-12 py-4 text-lg font-semibold ${isFormValid && !isSubmitting
-                              ? "bg-rose-500 hover:bg-rose-600 text-white"
-                              : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        className={`px-12 py-4 text-lg font-semibold ${isFormValid && !isSubmitting ? "bg-rose-500 hover:bg-rose-600 text-white" : "bg-gray-300 text-gray-600 cursor-not-allowed"
                            }`}
                         disabled={!isFormValid || isSubmitting}
                      >
@@ -465,7 +380,6 @@ export default function BookingPage() {
                            "Proceed to Payment"
                         )}
                      </Button>
-                     {!razorpayLoaded && <p className="text-sm text-gray-500 mt-2">Loading payment gateway...</p>}
                   </div>
                </form>
             </div>
