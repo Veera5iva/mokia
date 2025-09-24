@@ -114,7 +114,6 @@ You can always check updates on our website: ${SITE_URL}
 
          <hr style="margin:16px 0; border:none; border-top:1px solid #ddd;" />
 
-         <p style="font-size:16px; margin:4px 0;"><strong>Problem:</strong> ${booking.problem ?? booking.problemType ?? "N/A"}</p>
          <p style="font-size:16px; margin:4px 0;"><strong>Date:</strong> ${slot.date ?? "N/A"}</p>
          <p style="font-size:16px; margin:4px 0;"><strong>Time:</strong> ${slot.time ?? ""}</p>
          <p style="font-size:16px; margin:4px 0;"><strong>Price:</strong> ${slot.price ?? "N/A"}</p>
