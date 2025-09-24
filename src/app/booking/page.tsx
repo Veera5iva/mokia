@@ -374,7 +374,7 @@ export default function BookingPage() {
                         {isSubmitting ? (
                            <>
                               <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                              {loadingRazorpay ? "Preparing Payment..." : "Processing..."}
+                              {loadingRazorpay ? "Processing Payment..." : "Processing..."}
                            </>
                         ) : (
                            "Proceed to Payment"
