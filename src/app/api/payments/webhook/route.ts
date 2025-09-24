@@ -59,10 +59,7 @@ export async function POST(req: Request) {
             }
             await booking.save();
             // Optionally notify admin about failed payments
-            sendAdminBookingEmail({
-               ...booking.toObject(),
-               // override body for failed payment, or create a separate function sendAdminFailureEmail
-            }).catch((err) => console.error("Failed send admin email for failed payment", err));
+            console.log(`❌ Booking ${booking._id} marked as failed via webhook`);
          }
       }
 
