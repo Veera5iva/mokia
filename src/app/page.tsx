@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Heart, Users, Clock, Shield, ArrowRight } from "lucide-react"
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards"
 import testimonials from "@/data/testimonials"
+import { TimelineDemo } from "@/components/timelineDemo"
 
 export default function HomePage() {
    const [isVisible, setIsVisible] = useState(false)
@@ -82,6 +83,10 @@ export default function HomePage() {
                ))}
             </div>
          </section>
+
+         <div className="relative w-full overflow-clip">
+            <TimelineDemo />
+         </div>
 
          {/* Features Section */}
          <section id="features" className="container max-w-7xl mx-auto px-4 py-20">
