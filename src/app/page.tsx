@@ -22,11 +22,11 @@ export default function HomePage() {
             <nav className="flex items-center justify-between">
                <div className="flex items-center gap-2">
                   <Heart className="h-8 w-8 text-rose-500" />
-                  <Link href="/" className="text-2xl font-bold text-gray-900 cursor-pointer hover:text-rose-600 transition">
+                  <Link href="/" className="text-2xl font-bold text-gray-900 cursor-pointer hover:text-yellow-600 transition">
                      Mokia
                   </Link>
                </div>
-               <Button variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50 bg-transparent">
+               <Button variant="outline" className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 bg-transparent">
                   Contact Us
                </Button>
             </nav>
@@ -40,7 +40,7 @@ export default function HomePage() {
                >
                   <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 text-balance">
                      Heal Your Heart,{" "}
-                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-600">
+                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-600">
                         Rebuild Your Life
                      </span>
                   </h1>
@@ -51,7 +51,7 @@ export default function HomePage() {
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                      <Button
                         size="lg"
-                        className="bg-rose-500 hover:bg-rose-600 text-white px-8 py-4 text-lg"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 text-lg"
                         onClick={() => document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" })}
                      >
                         Book Your Session
@@ -60,29 +60,13 @@ export default function HomePage() {
                      <Button
                         size="lg"
                         variant="outline"
-                        className="border-rose-200 text-rose-600 hover:bg-rose-50 px-8 py-4 text-lg bg-transparent"
+                        className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 px-8 py-4 text-lg bg-transparent"
                         onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
                      >
                         Learn More
                      </Button>
                   </div>
                </div>
-            </div>
-
-            {/* Floating Hearts Animation */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-               {[...Array(6)].map((_, i) => (
-                  <Heart
-                     key={i}
-                     className={`absolute text-rose-200 opacity-20 animate-float-${(i % 3) + 1}`}
-                     style={{
-                        left: `${20 + i * 15}%`,
-                        top: `${30 + (i % 2) * 20}%`,
-                        fontSize: `${20 + i * 5}px`,
-                        animationDelay: `${i * 0.5}s`,
-                     }}
-                  />
-               ))}
             </div>
          </section>
 
@@ -135,7 +119,7 @@ export default function HomePage() {
                      key={index}
                      className="text-center p-4 md:p-6 bg-card rounded-lg shadow-md hover:shadow-xl transition-all duration-300 h-auto"
                   >
-                     <div className="w-12 h-12 md:w-16 md:h-16 bg-rose-500 text-white rounded-full flex items-center justify-center text-lg md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg">
+                     <div className="w-12 h-12 md:w-16 md:h-16 bg-yellow-500 text-white rounded-full flex items-center justify-center text-lg md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg">
                         {step.step}
                      </div>
                      <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2">{step.title}</h3>
@@ -146,7 +130,7 @@ export default function HomePage() {
          </section>
 
          {/* CTA Section */}
-         <section id="booking" className="bg-gradient-to-r from-rose-500 to-pink-600 py-20">
+         <section id="booking" className="bg-gradient-to-r from-yellow-500 to-orange-600 py-20">
             <div className="container mx-auto px-4 text-center">
                <h2 className="text-4xl font-bold text-white mb-4">Ready to Start Your Next Chapter?</h2>
                <p className="text-xl text-rose-100 mb-8 max-w-2xl mx-auto">
@@ -154,7 +138,7 @@ export default function HomePage() {
                </p>
                <Button
                   size="lg"
-                  className="bg-white text-rose-600 hover:bg-rose-50 px-8 py-4 text-lg font-semibold"
+                  className="bg-white text-yellow-600 hover:bg-yellow-50 px-8 py-4 text-lg font-semibold"
                   onClick={() => (window.location.href = "/booking")}
                >
                   Book Your Session Now
