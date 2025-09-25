@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Heart, Users, Clock, Shield, ArrowRight } from "lucide-react"
+import { Heart, ArrowRight } from "lucide-react"
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards"
 import testimonials from "@/data/testimonials"
 import { TimelineDemo } from "@/components/timelineDemo"
+import Link from "next/link"
 
 export default function HomePage() {
    const [isVisible, setIsVisible] = useState(false)
@@ -22,7 +22,9 @@ export default function HomePage() {
             <nav className="flex items-center justify-between">
                <div className="flex items-center gap-2">
                   <Heart className="h-8 w-8 text-rose-500" />
-                  <span className="text-2xl font-bold text-gray-900">Mokia</span>
+                  <Link href="/" className="text-2xl font-bold text-gray-900 cursor-pointer hover:text-rose-600 transition">
+                     Mokia
+                  </Link>
                </div>
                <Button variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50 bg-transparent">
                   Contact Us
@@ -84,55 +86,12 @@ export default function HomePage() {
             </div>
          </section>
 
-         <div className="relative w-full overflow-clip">
+
+         {/* Features Section */}
+         <div id="features" className="relative w-full overflow-clip">
             <TimelineDemo />
          </div>
 
-         {/* Features Section */}
-         <section id="features" className="container max-w-7xl mx-auto px-4 py-20">
-            <div className="text-center mb-16">
-               <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Mokia?</h2>
-               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                  Professional support tailored to your unique journey of healing and growth
-               </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-               {[
-                  {
-                     icon: Users,
-                     title: "1:1 Personal Sessions",
-                     description: "Individual attention focused entirely on your specific needs and challenges",
-                  },
-                  {
-                     icon: Shield,
-                     title: "Safe & Confidential",
-                     description: "A judgment-free space where you can share openly and heal at your own pace",
-                  },
-                  {
-                     icon: Clock,
-                     title: "Flexible Scheduling",
-                     description: "Book sessions that fit your schedule with easy online appointment management",
-                  },
-                  {
-                     icon: Heart,
-                     title: "Proven Methods",
-                     description: "Evidence-based techniques to help you overcome heartbreak and build resilience",
-                  },
-               ].map((feature, index) => (
-                  <Card
-                     key={index}
-                     className="border-rose-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-2"
-                  >
-                     <CardContent className="p-8 text-center">
-                        <feature.icon className="h-12 w-12 text-rose-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                        <p className="text-gray-600">{feature.description}</p>
-                     </CardContent>
-                  </Card>
-               ))}
-            </div>
-         </section>
 
          {/* Testimonials */}
          <section>
