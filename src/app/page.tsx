@@ -7,6 +7,7 @@ import { InfiniteMovingMarquee } from "@/components/ui/infinite-moving-cards"
 import { TimelineDemo } from "@/components/timelineDemo"
 import Link from "next/link"
 import testimonials from "@/data/testimonials"
+import { SiInstagram, SiYoutube } from "react-icons/si"
 
 export default function HomePage() {
    const [isVisible, setIsVisible] = useState(false)
@@ -150,16 +151,18 @@ export default function HomePage() {
          {/* Footer */}
          <footer className="bg-gray-900 text-white py-12">
             <div className="container mx-auto px-4">
-               <div className="grid md:grid-cols-4 gap-8">
+               {/* Responsive Grid */}
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-20">
+                  {/* Brand */}
                   <div>
                      <div className="flex items-center gap-2 mb-4">
                         <Heart className="h-6 w-6 text-rose-500" />
                         <span className="text-xl font-bold">Mokia</span>
                      </div>
-                     <p className="text-gray-400">
-                        Professional counseling for love failure, depression, and personal growth.
-                     </p>
+                     <p className="text-gray-400">Professional counseling for love failure, depression, and personal growth.</p>
                   </div>
+                  
+                  {/* Services */}
                   <div>
                      <h4 className="font-semibold mb-4">Services</h4>
                      <ul className="space-y-2 text-gray-400">
@@ -169,15 +172,21 @@ export default function HomePage() {
                         <li>Self-Improvement</li>
                      </ul>
                   </div>
+
+                  {/* Social */}
                   <div>
-                     <h4 className="font-semibold mb-4">Support</h4>
-                     <ul className="space-y-2 text-gray-400">
-                        <li>FAQ</li>
-                        <li>Contact Us</li>
-                        <li>Privacy Policy</li>
-                        <li>Terms of Service</li>
-                     </ul>
+                     <h4 className="font-semibold mb-5">Social</h4>
+                     <div className="flex gap-4 text-gray-400">
+                        <a href="#" aria-label="Instagram" className="hover:text-yellow-500 transition">
+                           <SiInstagram className="h-6 w-6" />
+                        </a>
+                        <a href="#" aria-label="YouTube" className="hover:text-yellow-500 transition">
+                           <SiYoutube className="h-6 w-6" />
+                        </a>
+                     </div>
                   </div>
+
+                  {/* Contact */}
                   <div>
                      <h4 className="font-semibold mb-4">Contact</h4>
                      <ul className="space-y-2 text-gray-400">
@@ -187,8 +196,10 @@ export default function HomePage() {
                      </ul>
                   </div>
                </div>
-               <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                  <p>&copy; 2024 HeartHeal. All rights reserved.</p>
+
+               {/* Bottom Bar */}
+               <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-md">
+                  <p>&copy; 2025 Mokia. All rights reserved.</p>
                </div>
             </div>
          </footer>
