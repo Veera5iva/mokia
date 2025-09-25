@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Heart, ArrowRight } from "lucide-react"
-import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards"
-import testimonials from "@/data/testimonials"
+import { InfiniteMovingMarquee } from "@/components/ui/infinite-moving-cards"
 import { TimelineDemo } from "@/components/timelineDemo"
 import Link from "next/link"
+import testimonials from "@/data/testimonials"
 
 export default function HomePage() {
    const [isVisible, setIsVisible] = useState(false)
@@ -96,16 +96,12 @@ export default function HomePage() {
          {/* Testimonials */}
          <section>
             <div className="container mx-auto px-4">
-               <div className="h-[40rem] rounded-md flex flex-col antialiased bg-white dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden">
+               <div className="h-[35rem] rounded-md flex flex-col antialiased bg-white dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden">
                   <div className="text-center mb-16">
                      <h2 className="text-4xl font-bold text-gray-900 mb-4">Success Stories</h2>
                      <p className="text-xl text-gray-600">Real people, real transformations</p>
                   </div>
-                  <InfiniteMovingCards
-                     items={testimonials}
-                     direction="right"
-                     speed="slow"
-                  />
+                  <InfiniteMovingMarquee items={testimonials} direction="right" speed="slow" />
                </div>
             </div>
          </section>
