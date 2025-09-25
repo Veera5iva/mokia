@@ -17,7 +17,7 @@ export default function HomePage() {
    return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
          {/* Header */}
-         <header className="container mx-auto px-4 py-6">
+         <header className="container max-w-7xl mx-auto px-4 py-6">
             <nav className="flex items-center justify-between">
                <div className="flex items-center gap-2">
                   <Heart className="h-8 w-8 text-rose-500" />
@@ -84,7 +84,7 @@ export default function HomePage() {
          </section>
 
          {/* Features Section */}
-         <section id="features" className="container mx-auto px-4 py-20">
+         <section id="features" className="container max-w-7xl mx-auto px-4 py-20">
             <div className="text-center mb-16">
                <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Mokia?</h2>
                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -117,9 +117,9 @@ export default function HomePage() {
                ].map((feature, index) => (
                   <Card
                      key={index}
-                     className="border-rose-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                     className="border-rose-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-2"
                   >
-                     <CardContent className="p-6 text-center">
+                     <CardContent className="p-8 text-center">
                         <feature.icon className="h-12 w-12 text-rose-500 mx-auto mb-4" />
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
                         <p className="text-gray-600">{feature.description}</p>
@@ -147,10 +147,10 @@ export default function HomePage() {
          </section>
 
          {/* Process Section */}
-         <section className="container mx-auto px-4 py-20">
+         <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-20 md:py-24">
             <div className="text-center mb-16">
-               <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-               <p className="text-xl text-gray-600">Simple steps to start your healing journey</p>
+               <h2 className="text-4xl font-bold text-foreground mb-4">How It Works</h2>
+               <p className="text-xl text-muted-foreground">Simple steps to start your healing journey</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
@@ -171,12 +171,15 @@ export default function HomePage() {
                      description: "Join your personalized 1:1 session and begin your transformation",
                   },
                ].map((step, index) => (
-                  <div key={index} className="text-center">
-                     <div className="w-16 h-16 bg-rose-500 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                  <div
+                     key={index}
+                     className="text-center p-4 md:p-6 bg-card rounded-lg shadow-md hover:shadow-xl transition-all duration-300 h-auto"
+                  >
+                     <div className="w-12 h-12 md:w-16 md:h-16 bg-rose-500 text-white rounded-full flex items-center justify-center text-lg md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg">
                         {step.step}
                      </div>
-                     <h3 className="text-xl font-semibold text-gray-900 mb-2">{step.title}</h3>
-                     <p className="text-gray-600">{step.description}</p>
+                     <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2">{step.title}</h3>
+                     <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{step.description}</p>
                   </div>
                ))}
             </div>
