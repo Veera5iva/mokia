@@ -17,7 +17,7 @@ export default function HomePage() {
    }, [])
 
    return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-orange-50">
          {/* Header */}
          <header className="container max-w-7xl mx-auto px-4 py-6">
             <nav className="flex items-center justify-between">
@@ -43,7 +43,7 @@ export default function HomePage() {
          </header>
 
          {/* Hero Section */}
-         <section className="container mx-auto px-4 py-20">
+         <section className="container mx-auto px-4 py-20 bg-gradient-to-br from-yellow-50 via-white to-orange-50">
             <div className="text-center max-w-4xl mx-auto">
                <div
                   className={`transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
@@ -89,7 +89,7 @@ export default function HomePage() {
 
          {/* Testimonials */}
          <section>
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 bg-white">
                <div className="h-[35rem] rounded-md flex flex-col antialiased bg-white dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden">
                   <div className="text-center mb-16">
                      <h2 className="text-4xl font-bold text-neutral-600 mb-4">Success Stories</h2>
@@ -107,7 +107,7 @@ export default function HomePage() {
                <p className="text-xl text-gray-600">Simple steps to start your healing journey</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-10">
                {[
                   {
                      step: "1",
@@ -127,14 +127,14 @@ export default function HomePage() {
                ].map((step, index) => (
                   <div
                      key={index}
-                     className="text-center p-4 md:p-6 bg-card rounded-lg shadow-md hover:shadow-xl transition-all duration-300 h-auto 
+                     className="text-center p-5 md:p-6 bg-card rounded-lg shadow-md hover:shadow-xl transition-all duration-300 h-auto 
                  max-w-xs mx-auto md:max-w-full md:mx-0"
                   >
-                     <div className="w-12 h-12 md:w-16 md:h-16 bg-yellow-500 text-white rounded-full flex items-center justify-center text-lg md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg">
+                     <div className="w-12 h-12 md:w-16 md:h-16 bg-yellow-500 text-white rounded-full flex items-center justify-center text-lg md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg mt-4">
                         {step.step}
                      </div>
                      <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2">{step.title}</h3>
-                     <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{step.description}</p>
+                     <p className="text-base text-muted-foreground leading-relaxed mb-4">{step.description}</p>
                   </div>
                ))}
             </div>
