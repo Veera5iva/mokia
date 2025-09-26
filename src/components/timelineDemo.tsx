@@ -9,7 +9,7 @@ export function TimelineDemo() {
          content: (
             <div>
                <p
-                  className="mb-8 text-base md:text-lg font-normal text-neutral-800  dark:text-neutral-200">
+                  className="mb-8 text-base md:text-lg font-normal text-gray-700  dark:text-neutral-200">
                   Get personalized guidance tailored to your unique situation, with dedicated attention on your emotions, challenges, and growth journey.
                </p>
                <div className="grid grid-cols-2 gap-4">
@@ -34,7 +34,7 @@ export function TimelineDemo() {
          content: (
             <div>
                <p
-                  className="mb-8 text-base font-normal text-neutral-800 md:text-lg dark:text-neutral-200">
+                  className="mb-8 text-base font-normal text-gray-700 md:text-lg dark:text-neutral-200">
                   We provide a secure, judgment-free space where you can speak openly and process your feelings with complete confidentiality.
                </p>
                
@@ -60,7 +60,7 @@ export function TimelineDemo() {
          content: (
             <div>
                <p
-                  className="mb-8 text-base font-normal text-neutral-800 md:text-lg dark:text-neutral-200">
+                  className="mb-8 text-base font-normal text-gray-700 md:text-lg dark:text-neutral-200">
                   Easily book appointments at times that work best for you, with convenient online scheduling designed to fit your lifestyle.
                </p>
                
@@ -86,7 +86,7 @@ export function TimelineDemo() {
          content: (
             <div>
                <p
-                  className="mb-8 text-base font-normal text-neutral-800 md:text-lg dark:text-neutral-200">
+                  className="mb-8 text-base font-normal text-gray-700 md:text-lg dark:text-neutral-200">
                   Benefit from research-backed techniques and compassionate support to help you heal, rebuild confidence, and move forward stronger.
                </p>
                <div className="grid grid-cols-2 gap-4">
