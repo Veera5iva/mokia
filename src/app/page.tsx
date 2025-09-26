@@ -127,7 +127,8 @@ export default function HomePage() {
                ].map((step, index) => (
                   <div
                      key={index}
-                     className="text-center p-4 md:p-6 bg-card rounded-lg shadow-md hover:shadow-xl transition-all duration-300 h-auto"
+                     className="text-center p-4 md:p-6 bg-card rounded-lg shadow-md hover:shadow-xl transition-all duration-300 h-auto 
+                 max-w-xs mx-auto md:max-w-full md:mx-0"
                   >
                      <div className="w-12 h-12 md:w-16 md:h-16 bg-yellow-500 text-white rounded-full flex items-center justify-center text-lg md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg">
                         {step.step}
@@ -137,6 +138,7 @@ export default function HomePage() {
                   </div>
                ))}
             </div>
+
          </section>
 
          {/* CTA Section */}
@@ -148,7 +150,7 @@ export default function HomePage() {
                </p>
                <Button
                   size="lg"
-                  className="bg-white text-yellow-600 hover:bg-yellow-50 hover:text-black px-8 py-6 text-lg font-semibold"
+                  className="bg-white text-yellow-600 hover:bg-yellow-50 hover:text-bla px-8 py-6 text-lg font-semibold"
                   onClick={() => (window.location.href = "/booking")}
                >
                   Book Your Session Now
