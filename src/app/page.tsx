@@ -23,7 +23,7 @@ export default function HomePage() {
             <nav className="flex items-center justify-between">
                <div className="flex items-center gap-2">
                   <Heart className="h-8 w-8 text-rose-500" />
-                  <Link href="/" className="text-2xl font-bold text-gray-900 cursor-pointer hover:text-yellow-600 transition">
+                  <Link href="/" className="text-2xl font-bold text-neutral-800 cursor-pointer hover:text-yellow-600 transition">
                      Mokia
                   </Link>
                </div>
@@ -48,7 +48,7 @@ export default function HomePage() {
                <div
                   className={`transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
                >
-                  <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 text-balance">
+                  <h1 className="text-5xl md:text-7xl font-bold text-neutral-700 mb-6 text-balance">
                      Heal Your Heart,{" "}
                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-600">
                         Rebuild Your Life
