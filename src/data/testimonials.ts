@@ -17,7 +17,7 @@ const testimonials = [
     alt: "Success Story 4",
   },
   {
-    src: "/images/success5.jpg",
+    src: "/images/success4.jpg",
     alt: "Success Story 5",
   },
 ]
