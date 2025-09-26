@@ -61,7 +61,7 @@ export default function HomePage() {
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                      <Button
                         size="lg"
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 text-lg"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-6 text-lg w-[260px] self-center md:w-auto"
                         onClick={() => document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" })}
                      >
                         Book Your Session
@@ -70,7 +70,7 @@ export default function HomePage() {
                      <Button
                         size="lg"
                         variant="outline"
-                        className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 px-8 py-4 text-lg bg-transparent"
+                        className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 px-8 py-6 text-lg bg-transparent w-[260px] self-center md:w-auto"
                         onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
                      >
                         Learn More
@@ -148,7 +148,7 @@ export default function HomePage() {
                </p>
                <Button
                   size="lg"
-                  className="bg-white text-yellow-600 hover:bg-yellow-50 px-8 py-4 text-lg font-semibold"
+                  className="bg-white text-yellow-600 hover:bg-yellow-50 hover:text-black px-8 py-6 text-lg font-semibold"
                   onClick={() => (window.location.href = "/booking")}
                >
                   Book Your Session Now
