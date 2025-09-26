@@ -152,7 +152,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
-       <Toaster position="top-right" reverseOrder={false} />
+      <Toaster position="top-right" reverseOrder={false} />
       {/* Status Dialog */}
       {showStatusDialog && selectedBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -212,7 +212,7 @@ export default function AdminPage() {
         <nav className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Heart className="h-8 w-8 text-rose-500" />
-            <span className="text-2xl font-bold text-gray-900">HeartHeal</span>
+            <span className="text-2xl font-bold text-gray-900">Mokia</span>
             <Badge variant="secondary" className="ml-2">Admin</Badge>
           </Link>
           <div className="flex items-center gap-4">
@@ -227,15 +227,15 @@ export default function AdminPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Admin Dashboard</h1>
-            <p className="text-xl text-gray-600">Manage your availability and client bookings</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Admin Dashboard</h1>
+            <p className="text-lg md:text-xl text-gray-600">Manage your availability and client bookings</p>
           </div>
 
           {/* Tab Navigation */}
           <div className="flex justify-center mb-8">
             <div className="bg-white rounded-lg p-1 shadow-sm border border-rose-100">
               <Button variant={activeTab === "slots" ? "default" : "ghost"} className={activeTab === "slots" ? "bg-rose-500 text-white" : "text-gray-600"} onClick={() => setActiveTab("slots")}>
-                <Calendar className="h-4 w-4 mr-2" /> Time Slots
+                Time Slots
               </Button>
               <Button variant={activeTab === "bookings" ? "default" : "ghost"} className={activeTab === "bookings" ? "bg-rose-500 text-white" : "text-gray-600"} onClick={() => setActiveTab("bookings")}>
                 Bookings
@@ -250,7 +250,7 @@ export default function AdminPage() {
           {activeTab === "slots" && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold text-gray-900">Manage Time Slots</h2>
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-900">Manage Time Slots</h2>
                 <Button onClick={() => setShowAddSlot(true)} className="bg-rose-500 hover:bg-rose-600 text-white">
                   <Plus className="h-4 w-4 mr-2" /> Add New Slot
                 </Button>
@@ -314,126 +314,170 @@ export default function AdminPage() {
           {/* Bookings Tab */}
           {activeTab === "bookings" && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-gray-900">Client Bookings</h2>
-              {bookings
-                ?.filter((b) => b.status !== "completed")
-                .map((booking) => (
-                  <Card
-                    key={booking._id}
-                    className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="grid md:grid-cols-3 gap-6">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 mb-2">{booking.name}</h3>
-                          <div className="space-y-1 text-sm text-gray-600">
-                            <div>Email: {booking.email}</div>
-                            <div>Phone: {booking.phone}</div>
-                            <div>Issue: {booking.problemType}</div>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Session Details</h4>
-                          <div className="space-y-1 text-sm text-gray-600">
-                            {booking.slot ? (
-                              <>
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="h-4 w-4" />
-                                  {formatDate((booking as any).slot.date)}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  {(booking as any).slot.time}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-gray-500">Price:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {formatINR((booking as any).slot.price)}
-                                  </span>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="text-sm text-gray-500">Slot removed</div>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <Badge className={getStatusColor(booking.status)}>
-                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                            </Badge>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditBooking(booking)}
-                                className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-900">Client Bookings</h2>
+
+              {bookings?.filter(
+                (b) => b.status === "confirmed" || b.status === "pending" || b.status === "scheduled"
+              ).length === 0 ? (
+                <p className="text-center text-gray-500 italic">No bookings available</p>
+              ) : (
+                bookings
+                  ?.filter(
+                    (b) => b.status === "confirmed" || b.status === "pending" || b.status === "scheduled"
+                  )
+                  .map((booking) => (
+                    <Card
+                      key={booking._id}
+                      className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""
+                        }`}
+                    >
+                      <CardContent className="p-6">
+                        <div className="grid md:grid-cols-3 gap-6">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 mb-2">{booking.name}</h3>
+                            <div className="space-y-1 text-sm text-gray-600">
+                              <div>Email: {booking.email}</div>
+                              <div>Phone: {booking.phone}</div>
+                              <div>Issue: {booking.problemType}</div>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-600">
-                            <strong>Problem:</strong>
-                            <div className="mt-1 text-xs">{booking.problem.substring(0, 100)}...</div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Session Details</h4>
+                            <div className="space-y-1 text-sm text-gray-600">
+                              {booking.slot ? (
+                                <>
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    {formatDate((booking as any).slot.date)}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    {(booking as any).slot.time}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-gray-500">Price:</span>
+                                    <span className="font-semibold text-gray-900">
+                                      {formatINR((booking as any).slot.price)}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-sm text-gray-500">Slot removed</div>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge className={getStatusColor(booking.status)}>
+                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                              </Badge>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditBooking(booking)}
+                                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="text-sm text-gray-600 flex items-center gap-1">
+                              <strong>Problem:</strong>
+                              <div
+                                className="mt-1 text-sm text-blue-600 underline cursor-pointer line-clamp-2"
+                                onClick={() => {
+                                  const newWindow = window.open("", "_blank")
+                                  if (newWindow) {
+                                    newWindow.document.write(`
+          <html>
+            <head>
+              <title>Problem Details</title>
+              <style>
+                body {
+                  font-family: sans-serif;
+                  line-height: 1.6;
+                  padding: 20px;
+                  max-width: 700px;
+                  margin: auto;
+                  background: #f9fafb;
+                  color: #111827;
+                }
+              </style>
+            </head>
+            <body>
+              <h2>Problem Details</h2>
+              <p>${booking.problem.replace(/\n/g, "<br/>")}</p>
+            </body>
+          </html>
+        `)
+                                    newWindow.document.close()
+                                  }
+                                }}
+                              >
+                                Click Here
+                              </div>
+                            </div>
+
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+              )}
             </div>
           )}
+
 
           {/* History Tab */}
           {activeTab === "history" && (
             <div className="space-y-6">
-              {bookings
-                ?.filter((b) => b.status === "completed")
-                .map((booking) => (
-                  <Card
-                    key={booking._id}
-                    className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}
-                  >
-                    <CardContent className="p-4 space-y-2">
-                      {/* Client name with status badge */}
-                      <div className="flex justify-between items-center">
-                        <div className="font-semibold text-gray-900">{booking.name}</div>
-                        <Badge className={getStatusColor("completed")}>Completed</Badge>
-                      </div>
+              {bookings?.filter((b) => b.status === "completed" || b.status === "cancelled").length === 0 ? (
+                <p className="text-center text-gray-500 italic">No history available</p>
+              ) : (
+                bookings
+                  ?.filter((b) => b.status === "completed" || b.status === "cancelled")
+                  .map((booking) => (
+                    <Card
+                      key={booking._id}
+                      className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""
+                        }`}
+                    >
+                      <CardContent className="p-4 space-y-2">
+                        {/* Client name with status badge */}
+                        <div className="flex justify-between items-center">
+                          <div className="font-semibold text-gray-900">{booking.name}</div>
+                          <Badge className={getStatusColor(booking.status)}>
+                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                          </Badge>
+                        </div>
 
-                      <div className="text-sm text-gray-600">{booking.email}</div>
+                        <div className="text-sm text-gray-600">{booking.email}</div>
 
-                      {/* Date/time with price */}
-                      <div className="flex justify-between items-center">
-                        {booking.slot ? (
-                          <div className="text-sm text-gray-600">
-                            {formatDate((booking as any).slot.date)} {(booking as any).slot.time}
-                          </div>
-                        ) : (
-                          <div className="text-sm text-gray-500 italic">Slot removed</div>
-                        )}
+                        {/* Date/time with price */}
+                        <div className="flex justify-between items-center">
+                          {booking.slot ? (
+                            <div className="text-sm text-gray-600">
+                              {formatDate((booking as any).slot.date)} {(booking as any).slot.time}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-500 italic">Slot removed</div>
+                          )}
 
-                        {(booking as any).slot && (
-                          <div className="text-sm font-semibold text-gray-900">
-                            {formatINR((booking as any).slot.price)}
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                          {(booking as any).slot && (
+                            <div className="text-sm font-semibold text-gray-900">
+                              {formatINR((booking as any).slot.price)}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+              )}
             </div>
           )}
+
         </div>
       </div>
     </div>
