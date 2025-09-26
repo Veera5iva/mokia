@@ -383,14 +383,17 @@ export default function AdminPage() {
                               </div>
                             </div>
 
-                            <div className="text-sm text-gray-600 flex items-center gap-1">
+                            <div className="text-sm text-gray-600 flex items-center gap-2 mt-3">
                               <strong>Problem:</strong>
-                              <div
-                                className="mt-1 text-sm text-blue-600 underline cursor-pointer line-clamp-2"
+                              <span
+                                className="text-sm text-blue-600 underline cursor-pointer"
                                 onClick={() => {
                                   const newWindow = window.open("", "_blank")
                                   if (newWindow) {
-                                    newWindow.document.write(`
+                                    const doc = newWindow.document
+                                    doc.open()
+
+                                    doc.write(`
           <html>
             <head>
               <title>Problem Details</title>
@@ -412,13 +415,15 @@ export default function AdminPage() {
             </body>
           </html>
         `)
-                                    newWindow.document.close()
+
+                                    doc.close()
                                   }
                                 }}
                               >
                                 Click Here
-                              </div>
+                              </span>
                             </div>
+
 
                           </div>
                         </div>
