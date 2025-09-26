@@ -92,8 +92,8 @@ export default function HomePage() {
             <div className="container mx-auto px-4 bg-white">
                <div className="h-[35rem] rounded-md flex flex-col antialiased bg-white dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden">
                   <div className="text-center mb-16">
-                     <h2 className="text-4xl font-bold text-neutral-600 mb-4">Success Stories</h2>
-                     <p className="text-xl text-gray-600">Real people, real transformations</p>
+                     <h2 className="text-3xl md:text-4xl font-bold text-neutral-600 mb-4">Success Stories</h2>
+                     <p className="text-lg md:text-xl text-gray-600">Real people, real transformations</p>
                   </div>
                   <InfiniteMovingMarquee items={testimonials} direction="right" speed="slow" />
                </div>
@@ -103,8 +103,8 @@ export default function HomePage() {
          {/* Process Section */}
          <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-20 md:py-24">
             <div className="text-center mb-16">
-               <h2 className="text-4xl font-bold text-neutral-600 mb-4">How It Works</h2>
-               <p className="text-xl text-gray-600">Simple steps to start your healing journey</p>
+               <h2 className="text-3xl md:text-4xl font-bold text-neutral-600 mb-4">How It Works</h2>
+               <p className="text-lg md:text-xl text-gray-600">Simple steps to start your healing journey</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-10">

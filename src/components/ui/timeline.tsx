@@ -37,8 +37,8 @@ export const Timeline = ({ data }: { data: TimelineEntry[] }) => {
       ref={containerRef}
     >
       <div className="text-center max-w-7xl mx-auto py-10 px-4 md:px-8 lg:px-10">
-        <h2 className="text-4xl font-bold text-neutral-600 mb-4">Why Choose Mokia?</h2>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-bold text-neutral-600 mb-4">Why Choose Mokia?</h2>
+        <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
           Professional support tailored to your unique journey of healing and growth
         </p>
       </div>
