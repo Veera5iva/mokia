@@ -18,7 +18,7 @@ export default function ContactPage() {
             {/* Email */}
             <div className="flex items-center justify-center mb-8">
                <Link
-                  href="mailto:admin@mokia.com"
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=contact.mokia@gmail.com"
                   className="flex items-center gap-3 text-rose-600 hover:text-rose-700 text-lg font-medium"
                >
                   <Mail className="h-6 w-6" />

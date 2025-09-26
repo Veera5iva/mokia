@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Heart, ArrowRight } from "lucide-react"
+import { Heart, ArrowRight, Mail, Phone } from "lucide-react"
 import { InfiniteMovingMarquee } from "@/components/ui/infinite-moving-cards"
 import { TimelineDemo } from "@/components/timelineDemo"
 import Link from "next/link"
@@ -27,9 +27,18 @@ export default function HomePage() {
                      Mokia
                   </Link>
                </div>
-               <Button variant="outline" className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 bg-transparent">
-                  Contact Us
-               </Button>
+               <a
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=contact.mokia@gmail.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+               >
+                  <Button
+                     variant="outline"
+                     className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 bg-transparent"
+                  >
+                     Contact Us
+                  </Button>
+               </a>
             </nav>
          </header>
 
@@ -161,7 +170,7 @@ export default function HomePage() {
                      </div>
                      <p className="text-gray-400">Professional counseling for love failure, depression, and personal growth.</p>
                   </div>
-                  
+
                   {/* Services */}
                   <div>
                      <h4 className="font-semibold mb-4">Services</h4>
@@ -175,24 +184,57 @@ export default function HomePage() {
 
                   {/* Social */}
                   <div>
-                     <h4 className="font-semibold mb-5">Social</h4>
-                     <div className="flex gap-4 text-gray-400">
-                        <a href="#" aria-label="Instagram" className="hover:text-yellow-500 transition">
-                           <SiInstagram className="h-6 w-6" />
+                     <h4 className="font-semibold mb-4">Social</h4>
+                     <div className="flex flex-col space-y-3 text-gray-400">
+                        <a href="#"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           aria-label="Instagram"
+                           className="flex items-center gap-2 hover:text-yellow-500 transition">
+                           <SiInstagram className="h-5 w-5" />
+                           Instagram
                         </a>
-                        <a href="#" aria-label="YouTube" className="hover:text-yellow-500 transition">
-                           <SiYoutube className="h-6 w-6" />
+                        <a href="#"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           aria-label="Instagram"
+                           className="flex items-center gap-2 hover:text-yellow-500 transition">
+                           <SiYoutube className="h-5 w-5" />
+                           YouTube
                         </a>
                      </div>
                   </div>
+
 
                   {/* Contact */}
                   <div>
                      <h4 className="font-semibold mb-4">Contact</h4>
                      <ul className="space-y-2 text-gray-400">
-                        <li>support@heartheal.com</li>
-                        <li>+1 (555) 123-4567</li>
-                        <li>Available 24/7</li>
+                        {/* Gmail Compose */}
+                        <li>
+                           <a
+                              href="https://mail.google.com/mail/?view=cm&fs=1&to=contact.mokia@gmail.com"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 hover:text-yellow-500 transition"
+                           >
+                              <Mail className="h-5 w-5" />
+                              contact.mokia@gmail.com
+                           </a>
+                        </li>
+
+                        {/* Phone Number */}
+                        <li>
+                           <a
+                              href="tel:+918778904546"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 hover:text-yellow-500 transition"
+                           >
+                              <Phone className="h-5 w-5" />
+                              +91 87789 04546
+                           </a>
+                        </li>
                      </ul>
                   </div>
                </div>
