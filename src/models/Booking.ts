@@ -4,7 +4,7 @@ import mongoose, { Schema, model, models } from "mongoose";
 const bookingSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
-  phone: { type: String },
+  phone: { type: String, required: true },
   problemType: { type: String, required: true },
   problem: { type: String, required: true },
   slot: { type: mongoose.Schema.Types.ObjectId, ref: "Slot", required: true },
