@@ -77,6 +77,7 @@ export default function BookingPage() {
    const isFormValid = Boolean(
       formData.name.trim() &&
       formData.email.trim() &&
+      formData.phone.trim() &&
       formData.problem.trim() &&
       formData.problemType &&
       formData.selectedSlot
@@ -219,8 +220,8 @@ export default function BookingPage() {
          <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
                <div className="text-center mb-8">
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4">Book Your Healing Session</h1>
-                  <p className="text-xl text-gray-600">Take the first step towards emotional freedom</p>
+                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Book Your Healing Session</h1>
+                  <p className="text-lg md:text-xl text-gray-600">Take the first step towards emotional freedom</p>
                </div>
 
                <form onSubmit={handleSubmit} className="space-y-8">
@@ -259,13 +260,14 @@ export default function BookingPage() {
                            </div>
                         </div>
                         <div>
-                           <Label htmlFor="phone">Phone</Label>
+                           <Label htmlFor="phone">Phone *</Label>
                            <Input
                               id="phone"
                               type="tel"
                               value={formData.phone}
                               onChange={(e) => handleInputChange("phone", e.target.value)}
                               placeholder="Enter your phone number"
+                              required
                               disabled={isSubmitting}
                            />
                         </div>
