@@ -28,7 +28,7 @@ export default function HomePage() {
                   </Link>
                </div>
                <a
-                  href="https://mail.google.com/mail/?view=cm&fs=1&to=contact.mokia@gmail.com"
+                  href="mailto:contact.mokia@gmail.com"
                   target="_blank"
                   rel="noopener noreferrer"
                >
@@ -210,35 +210,36 @@ export default function HomePage() {
 
                   {/* Contact */}
                   <div>
-                     <h4 className="font-semibold mb-4">Contact</h4>
-                     <ul className="space-y-2 text-gray-400">
+                     <h4 className="font-semibold mb-4 text-base md:text-lg">Contact</h4>
+                     <ul className="space-y-2 text-gray-400 text-sm md:text-base">
                         {/* Gmail Compose */}
-                        <li>
+                        <li className="flex items-center gap-2 mb-4">
+                           <Mail className="h-5 w-5 hidden sm:inline-block" />
                            <a
-                              href="https://mail.google.com/mail/?view=cm&fs=1&to=contact.mokia@gmail.com"
+                              href="mailto:contact.mokia@gmail.com"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 hover:text-yellow-500 transition"
+                              className="hover:text-yellow-500 transition break-words"
                            >
-                              <Mail className="h-5 w-5" />
                               contact.mokia@gmail.com
                            </a>
                         </li>
 
                         {/* Phone Number */}
-                        <li>
+                        <li className="flex items-center gap-2 text-base">
+                           <Phone className="h-5 w-5 hidden sm:inline-block" />
                            <a
                               href="tel:+918778904546"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 hover:text-yellow-500 transition"
+                              className="hover:text-yellow-500 transition break-words"
                            >
-                              <Phone className="h-5 w-5" />
                               +91 87789 04546
                            </a>
                         </li>
                      </ul>
                   </div>
+
                </div>
 
                {/* Bottom Bar */}
