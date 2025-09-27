@@ -136,14 +136,16 @@ export default function HomePage() {
          <footer className="bg-gray-900 text-white py-12">
             <div className="container mx-auto px-4">
                {/* Responsive Grid */}
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-20">
+               <div className="grid grid-cols-2 md:grid-cols-5 gap-10 md:gap-20">
                   {/* Brand */}
                   <div>
                      <div className="flex items-center gap-2 mb-4">
                         <Heart className="h-6 w-6 text-rose-500" />
                         <span className="text-xl font-bold">Mokia</span>
                      </div>
-                     <p className="text-gray-400">Professional counseling for love failure, depression, and personal growth.</p>
+                     <p className="text-gray-400">
+                        Professional counseling for love failure, depression, and personal growth.
+                     </p>
                   </div>
 
                   {/* Services */}
@@ -157,23 +159,58 @@ export default function HomePage() {
                      </ul>
                   </div>
 
+                  {/* Legal */}
+                  <div>
+                     <h4 className="font-semibold mb-4">Legal</h4>
+                     <ul className="space-y-2 text-gray-400">
+                        <li>
+                           <a
+                              href="/privacy-policy"
+                              className="hover:text-yellow-500 transition-colors duration-200"
+                           >
+                              Privacy Policy
+                           </a>
+                        </li>
+                        <li>
+                           <a
+                              href="/terms-and-conditions"
+                              className="hover:text-yellow-500 transition-colors duration-200"
+                           >
+                              Terms & Conditions
+                           </a>
+                        </li>
+                        <li>
+                           <a
+                              href="/refund-policy"
+                              className="hover:text-yellow-500 transition-colors duration-200"
+                           >
+                              Refund & Cancellation
+                           </a>
+                        </li>
+                     </ul>
+                  </div>
+
                   {/* Social */}
                   <div>
                      <h4 className="font-semibold mb-4">Social</h4>
                      <div className="flex flex-col space-y-3 text-gray-400">
-                        <a href="#"
+                        <a
+                           href="#"
                            target="_blank"
                            rel="noopener noreferrer"
                            aria-label="Instagram"
-                           className="flex items-center gap-2 hover:text-yellow-500 transition-colors duration-200">
+                           className="flex items-center gap-2 hover:text-yellow-500 transition-colors duration-200"
+                        >
                            <SiInstagram className="h-5 w-5" />
                            Instagram
                         </a>
-                        <a href="#"
+                        <a
+                           href="#"
                            target="_blank"
                            rel="noopener noreferrer"
                            aria-label="YouTube"
-                           className="flex items-center gap-2 hover:text-yellow-500 transition-colors duration-200">
+                           className="flex items-center gap-2 hover:text-yellow-500 transition-colors duration-200"
+                        >
                            <SiYoutube className="h-5 w-5" />
                            YouTube
                         </a>
@@ -182,8 +219,8 @@ export default function HomePage() {
 
                   {/* Contact */}
                   <div>
-                     <h4 className="font-semibold mb-4 text-base md:text-lg">Contact</h4>
-                     <ul className="space-y-2 text-gray-400 text-sm md:text-base">
+                     <h4 className="font-semibold mb-4">Contact</h4>
+                     <ul className="space-y-2 text-gray-400">
                         {/* Gmail Compose */}
                         <li className="flex items-center gap-2 mb-4">
                            <Mail className="h-5 w-5 hidden sm:inline-block" />
@@ -198,7 +235,7 @@ export default function HomePage() {
                         </li>
 
                         {/* Phone Number */}
-                        <li className="flex items-center gap-2 text-base">
+                        <li className="flex items-center gap-2 ">
                            <Phone className="h-5 w-5 hidden sm:inline-block" />
                            <a
                               href="tel:+918778904546"
@@ -219,6 +256,7 @@ export default function HomePage() {
                </div>
             </div>
          </footer>
+
       </div>
    )
 }
