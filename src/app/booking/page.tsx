@@ -429,8 +429,8 @@ export default function BookingPage() {
                         type="submit"
                         size="lg"
                         className={`px-12 py-4 text-lg font-semibold transition-colors duration-200 ${isFormValid && !isSubmitting
-                              ? "bg-rose-500 hover:bg-rose-600 text-white"
-                              : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                           ? "bg-rose-500 hover:bg-rose-600 text-white"
+                           : "bg-gray-300 text-gray-600 cursor-not-allowed"
                            }`}
                         disabled={!isFormValid || isSubmitting}
                      >
