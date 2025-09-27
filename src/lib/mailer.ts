@@ -61,7 +61,7 @@ Open Admin: ${SITE_URL}/admin
          <p style="font-size:16px; margin:4px 0;"><strong>Booking ID:</strong> ${booking._id}</p>
 
          <p style="margin-top:20px; font-size:16px;">
-            <a href="${SITE_URL}/admin" 
+            <a href="${SITE_URL}/admin-login" 
                style="display:inline-block; padding:10px 16px; background:#e11d48; color:#fff; text-decoration:none; border-radius:6px; font-size:16px;">
                   🔗 Open Admin Dashboard
             </a>

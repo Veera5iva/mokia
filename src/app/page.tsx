@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Heart, ArrowRight, Mail, Phone } from "lucide-react"
 import { InfiniteMovingMarquee } from "@/components/ui/infinite-moving-cards"
@@ -9,20 +7,8 @@ import { TimelineDemo } from "@/components/timelineDemo"
 import Link from "next/link"
 import testimonials from "@/data/testimonials"
 import { SiInstagram, SiYoutube } from "react-icons/si"
-import { useReveal } from "@/hooks/useReveal"
 
 export default function HomePage() {
-   const [isVisible, setIsVisible] = useState(false)
-   useEffect(() => setIsVisible(true), [])
-
-   // Hooks for scroll reveal
-   const heroReveal = useReveal()
-   const featuresReveal = useReveal()
-   const testimonialsReveal = useReveal()
-   const processReveal = useReveal()
-   const ctaReveal = useReveal()
-   const footerReveal = useReveal()
-
    return (
       <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-orange-50">
          {/* Header */}
@@ -30,12 +16,12 @@ export default function HomePage() {
             <nav className="flex items-center justify-between">
                <div className="flex items-center gap-2">
                   <Heart className="h-8 w-8 text-rose-500" />
-                  <Link href="/" className="text-2xl font-bold text-neutral-800 cursor-pointer hover:text-yellow-600 transition">
+                  <Link href="/" className="text-2xl font-bold text-neutral-800 cursor-pointer hover:text-yellow-600 transition-colors duration-200">
                      Mokia
                   </Link>
                </div>
                <a href="mailto:contact.mokia@gmail.com" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 bg-transparent">
+                  <Button variant="outline" className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 bg-transparent transition-colors duration-200">
                      Contact Us
                   </Button>
                </a>
@@ -43,13 +29,7 @@ export default function HomePage() {
          </header>
 
          {/* Hero Section */}
-         <section
-            ref={heroReveal.ref}
-            className={`container mx-auto px-4 py-20 transition-all duration-1000 ease-out ${heroReveal.isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-               }`}
-         >
+         <section className="container mx-auto px-4 py-20">
             <div className="text-center max-w-4xl mx-auto">
                <h1 className="text-5xl md:text-7xl font-bold text-neutral-700 mb-6 text-balance">
                   Heal Your Heart,{" "}
@@ -63,7 +43,7 @@ export default function HomePage() {
                <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                      size="lg"
-                     className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-6 text-lg w-[260px] self-center md:w-auto"
+                     className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-6 text-lg w-[260px] self-center md:w-auto transition-colors duration-200"
                      onClick={() => document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" })}
                   >
                      Book Your Session
@@ -72,7 +52,7 @@ export default function HomePage() {
                   <Button
                      size="lg"
                      variant="outline"
-                     className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 px-8 py-6 text-lg bg-transparent w-[260px] self-center md:w-auto"
+                     className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 px-8 py-6 text-lg bg-transparent w-[260px] self-center md:w-auto transition-colors duration-200"
                      onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
                   >
                      Learn More
@@ -82,25 +62,12 @@ export default function HomePage() {
          </section>
 
          {/* Features Section */}
-         <div
-            id="features"
-            ref={featuresReveal.ref}
-            className={`relative w-full overflow-clip transition-all duration-1000 ease-out ${featuresReveal.isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-               }`}
-         >
+         <div id="features" className="relative w-full overflow-clip">
             <TimelineDemo />
          </div>
 
          {/* Testimonials */}
-         <section
-            ref={testimonialsReveal.ref}
-            className={`transition-all duration-1000 ease-out ${testimonialsReveal.isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-               }`}
-         >
+         <section>
             <div className="container mx-auto px-4 bg-white">
                <div className="h-[35rem] rounded-md flex flex-col antialiased bg-white dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden">
                   <div className="text-center mb-16">
@@ -113,13 +80,7 @@ export default function HomePage() {
          </section>
 
          {/* Process Section */}
-         <section
-            ref={processReveal.ref}
-            className={`max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-20 md:py-24 transition-all duration-1000 ease-out ${processReveal.isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-               }`}
-         >
+         <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-20 md:py-24">
             <div className="text-center mb-16">
                <h2 className="text-3xl md:text-4xl font-bold text-neutral-600 mb-4">How It Works</h2>
                <p className="text-lg md:text-xl text-gray-600">Simple steps to start your healing journey</p>
@@ -141,13 +102,7 @@ export default function HomePage() {
                }].map((step, index) => (
                   <div
                      key={index}
-                     className={`text-center p-5 md:p-6 bg-card rounded-lg shadow-md hover:shadow-xl transition-all duration-500 ease-out h-auto max-w-xs mx-auto md:max-w-full md:mx-0 ${processReveal.isVisible
-                           ? "opacity-100 translate-y-0"
-                           : "opacity-0 translate-y-8"
-                        }`}
-                     style={{
-                        transitionDelay: processReveal.isVisible ? `${index * 150}ms` : '0ms'
-                     }}
+                     className="text-center p-5 md:p-6 bg-card rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 h-auto max-w-xs mx-auto md:max-w-full md:mx-0"
                   >
                      <div className="w-12 h-12 md:w-16 md:h-16 bg-yellow-500 text-white rounded-full flex items-center justify-center text-lg md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg mt-4">
                         {step.step}
@@ -160,14 +115,7 @@ export default function HomePage() {
          </section>
 
          {/* CTA Section */}
-         <section
-            id="booking"
-            ref={ctaReveal.ref}
-            className={`bg-gradient-to-r from-yellow-500 to-orange-600 py-20 transition-all duration-1000 ease-out ${ctaReveal.isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-               }`}
-         >
+         <section id="booking" className="bg-gradient-to-r from-yellow-500 to-orange-600 py-20">
             <div className="container mx-auto px-4 text-center">
                <h2 className="text-4xl font-bold text-white mb-4">Ready to Start Your Next Chapter?</h2>
                <p className="text-lg md:text-xl text-rose-100 mb-8 max-w-2xl mx-auto">
@@ -175,7 +123,7 @@ export default function HomePage() {
                </p>
                <Button
                   size="lg"
-                  className="bg-white text-yellow-600 hover:bg-yellow-50 hover:text-black px-8 py-6 text-lg font-semibold"
+                  className="bg-white text-yellow-600 hover:bg-yellow-50 hover:text-black px-8 py-6 text-lg font-semibold transition-colors duration-200"
                   onClick={() => (window.location.href = "/booking")}
                >
                   Book Your Session Now
@@ -185,23 +133,19 @@ export default function HomePage() {
          </section>
 
          {/* Footer */}
-         <footer
-            ref={footerReveal.ref}
-            className={`bg-gray-900 text-white py-12 transition-all duration-1000 ease-out ${footerReveal.isVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-               }`}
-         >
+         <footer className="bg-gray-900 text-white py-12">
             <div className="container mx-auto px-4">
                {/* Responsive Grid */}
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-20">
+               <div className="grid grid-cols-2 md:grid-cols-5 gap-10 md:gap-20">
                   {/* Brand */}
                   <div>
                      <div className="flex items-center gap-2 mb-4">
                         <Heart className="h-6 w-6 text-rose-500" />
                         <span className="text-xl font-bold">Mokia</span>
                      </div>
-                     <p className="text-gray-400">Professional counseling for love failure, depression, and personal growth.</p>
+                     <p className="text-gray-400">
+                        Professional counseling for love failure, depression, and personal growth.
+                     </p>
                   </div>
 
                   {/* Services */}
@@ -215,23 +159,58 @@ export default function HomePage() {
                      </ul>
                   </div>
 
+                  {/* Legal */}
+                  <div>
+                     <h4 className="font-semibold mb-4">Legal</h4>
+                     <ul className="space-y-2 text-gray-400">
+                        <li>
+                           <a
+                              href="/privacy-policy"
+                              className="hover:text-yellow-500 transition-colors duration-200"
+                           >
+                              Privacy Policy
+                           </a>
+                        </li>
+                        <li>
+                           <a
+                              href="/terms-and-conditions"
+                              className="hover:text-yellow-500 transition-colors duration-200"
+                           >
+                              Terms & Conditions
+                           </a>
+                        </li>
+                        <li>
+                           <a
+                              href="/refund-policy"
+                              className="hover:text-yellow-500 transition-colors duration-200"
+                           >
+                              Refund & Cancellation
+                           </a>
+                        </li>
+                     </ul>
+                  </div>
+
                   {/* Social */}
                   <div>
                      <h4 className="font-semibold mb-4">Social</h4>
                      <div className="flex flex-col space-y-3 text-gray-400">
-                        <a href="#"
+                        <a
+                           href="#"
                            target="_blank"
                            rel="noopener noreferrer"
                            aria-label="Instagram"
-                           className="flex items-center gap-2 hover:text-yellow-500 transition">
+                           className="flex items-center gap-2 hover:text-yellow-500 transition-colors duration-200"
+                        >
                            <SiInstagram className="h-5 w-5" />
                            Instagram
                         </a>
-                        <a href="#"
+                        <a
+                           href="#"
                            target="_blank"
                            rel="noopener noreferrer"
                            aria-label="YouTube"
-                           className="flex items-center gap-2 hover:text-yellow-500 transition">
+                           className="flex items-center gap-2 hover:text-yellow-500 transition-colors duration-200"
+                        >
                            <SiYoutube className="h-5 w-5" />
                            YouTube
                         </a>
@@ -240,8 +219,8 @@ export default function HomePage() {
 
                   {/* Contact */}
                   <div>
-                     <h4 className="font-semibold mb-4 text-base md:text-lg">Contact</h4>
-                     <ul className="space-y-2 text-gray-400 text-sm md:text-base">
+                     <h4 className="font-semibold mb-4">Contact</h4>
+                     <ul className="space-y-2 text-gray-400">
                         {/* Gmail Compose */}
                         <li className="flex items-center gap-2 mb-4">
                            <Mail className="h-5 w-5 hidden sm:inline-block" />
@@ -249,20 +228,20 @@ export default function HomePage() {
                               href="mailto:contact.mokia@gmail.com"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="hover:text-yellow-500 transition break-words"
+                              className="hover:text-yellow-500 transition-colors duration-200 break-words"
                            >
                               contact.mokia@gmail.com
                            </a>
                         </li>
 
                         {/* Phone Number */}
-                        <li className="flex items-center gap-2 text-base">
+                        <li className="flex items-center gap-2 ">
                            <Phone className="h-5 w-5 hidden sm:inline-block" />
                            <a
                               href="tel:+918778904546"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="hover:text-yellow-500 transition break-words"
+                              className="hover:text-yellow-500 transition-colors duration-200 break-words"
                            >
                               +91 87789 04546
                            </a>
@@ -277,6 +256,7 @@ export default function HomePage() {
                </div>
             </div>
          </footer>
+
       </div>
    )
 }
