@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useState, useCallback, useMemo } from "react"
@@ -13,19 +12,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Clock, Plus, Edit, Trash2, Heart } from "lucide-react"
+import { Plus, Heart } from "lucide-react"
 import Link from "next/link"
+// Import the separated components
+import { SlotCard } from "@/components/admin/SlotCard"
+import { BookingCard } from "@/components/admin/BookingCard"
+import { HistoryCard } from "@/components/admin/HistoryCard"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
-
-// Memoized utility functions
-const formatINR = (n: number | string | undefined) =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
-    typeof n === "string" ? Number(n || 0) : n ?? 0,
-  )
-
-const formatDate = (dateString: string) =>
-  new Date(dateString).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
 
 // Memoized status utilities
 const getStatusColor = (status: string) => {
@@ -55,185 +49,6 @@ const getAvailableStatuses = (currentStatus: string) => {
   }
   return []
 }
-
-// Memoized components
-const SlotCard = ({ slot, onToggle, onDelete }: {
-  slot: TimeSlot,
-  onToggle: (id: string) => void,
-  onDelete: (id: string) => void
-}) => (
-  <Card
-    className={`${slot.booked ? "border-green-200 bg-green-50" : slot.available ? "border-rose-200" : "border-gray-200 bg-gray-50"}${slot.priority === "priority" ? " border-purple-400" : ""}`}
-  >
-    <CardContent className="p-4">
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <div className="font-medium text-gray-900">{formatDate(slot.date)}</div>
-          <div className="flex items-center gap-1 text-sm text-gray-600">
-            <Clock className="h-4 w-4" /> {slot.time}
-          </div>
-        </div>
-        <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onToggle(slot._id)}
-            className={slot.available ? "border-red-200 text-red-600 hover:bg-red-50" : "border-green-200 text-green-600 hover:bg-green-50"}
-          >
-            {slot.available ? "Disable" : "Enable"}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onDelete(slot._id)}
-            className="border-red-200 text-red-600 hover:bg-red-50"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <Badge variant={slot.booked ? "default" : slot.available ? "available" : "disabled"}>
-          {slot.booked ? "Booked" : slot.available ? "Available" : "Disabled"}
-        </Badge>
-        <div className="text-sm font-semibold text-gray-900">{formatINR((slot as any).price)}</div>
-      </div>
-      {slot.clientName && <div className="mt-2 text-sm text-gray-600">Client: {slot.clientName}</div>}
-    </CardContent>
-  </Card>
-)
-
-const BookingCard = ({ booking, onEdit }: {
-  booking: Booking,
-  onEdit: (booking: Booking) => void
-}) => {
-  const handleProblemClick = useCallback(() => {
-    const newWindow = window.open("", "_blank")
-    if (newWindow) {
-      const doc = newWindow.document
-      doc.open()
-      doc.write(`
-        <html>
-          <head>
-            <title>Problem Details</title>
-            <style>
-              body {
-                font-family: sans-serif;
-                line-height: 1.6;
-                padding: 20px;
-                max-width: 700px;
-                margin: auto;
-                background: #f9fafb;
-                color: #111827;
-              }
-            </style>
-          </head>
-          <body>
-            <h2>Problem Details</h2>
-            <p>${booking.problem.replace(/\n/g, "<br/>")}</p>
-          </body>
-        </html>
-      `)
-      doc.close()
-    }
-  }, [booking.problem])
-
-  return (
-    <Card className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}>
-      <CardContent className="p-6">
-        <div className="grid md:grid-cols-3 gap-6">
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-2">{booking.name}</h3>
-            <div className="space-y-1 text-sm text-gray-600">
-              <div>Email: {booking.email}</div>
-              <div>Phone: {booking.phone}</div>
-              <div>Issue: {booking.problemType}</div>
-            </div>
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-900 mb-2">Session Details</h4>
-            <div className="space-y-1 text-sm text-gray-600">
-              {booking.slot ? (
-                <>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {formatDate((booking as any).slot.date)}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {(booking as any).slot.time}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">Price:</span>
-                    <span className="font-semibold text-gray-900">
-                      {formatINR((booking as any).slot.price)}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className="text-sm text-gray-500">Slot removed</div>
-              )}
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <Badge className={getStatusColor(booking.status)}>
-                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-              </Badge>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onEdit(booking)}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="text-sm text-gray-600 flex items-center gap-2 mt-3">
-              <strong>Problem:</strong>
-              <span
-                className="text-sm text-blue-600 underline cursor-pointer"
-                onClick={handleProblemClick}
-              >
-                Click Here
-              </span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-const HistoryCard = ({ booking }: { booking: Booking }) => (
-  <Card className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}>
-    <CardContent className="p-4 space-y-2">
-      <div className="flex justify-between items-center">
-        <div className="font-semibold text-gray-900">{booking.name}</div>
-        <Badge className={getStatusColor(booking.status)}>
-          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-        </Badge>
-      </div>
-      <div className="text-sm text-gray-600">{booking.email}</div>
-      <div className="flex justify-between items-center">
-        {booking.slot ? (
-          <div className="text-sm text-gray-600">
-            {formatDate((booking as any).slot.date)} {(booking as any).slot.time}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500 italic">Slot removed</div>
-        )}
-        {(booking as any).slot && (
-          <div className="text-sm font-semibold text-gray-900">
-            {formatINR((booking as any).slot.price)}
-          </div>
-        )}
-      </div>
-    </CardContent>
-  </Card>
-)
 
 export default function AdminPage() {
   const { data: slots, mutate: mutateSlots } = useSWR<TimeSlot[]>("/api/slots", fetcher)
