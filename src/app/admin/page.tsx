@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useMemo } from "react"
 import useSWR from "swr"
 import toast, { Toaster } from "react-hot-toast"
 import { signOut } from "next-auth/react"
@@ -17,10 +18,222 @@ import Link from "next/link"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
+// Memoized utility functions
 const formatINR = (n: number | string | undefined) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
     typeof n === "string" ? Number(n || 0) : n ?? 0,
   )
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+
+// Memoized status utilities
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "confirmed": return "bg-green-100 text-green-800"
+    case "pending": return "bg-yellow-100 text-yellow-800"
+    case "completed": return "bg-blue-100 text-blue-800"
+    case "cancelled": return "bg-red-100 text-red-800"
+    case "scheduled": return "bg-purple-100 text-purple-800"
+    default: return "bg-green-100 text-green-800"
+  }
+}
+
+const getAvailableStatuses = (currentStatus: string) => {
+  if (currentStatus === "confirmed") {
+    return [
+      { value: "scheduled", label: "Mark as Scheduled", color: "bg-purple-500 hover:bg-purple-600" },
+      { value: "completed", label: "Mark as Completed", color: "bg-blue-500 hover:bg-blue-600" },
+      { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" },
+    ]
+  }
+  if (currentStatus === "scheduled") {
+    return [
+      { value: "completed", label: "Mark as Completed", color: "bg-blue-500 hover:bg-blue-600" },
+      { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" },
+    ]
+  }
+  return []
+}
+
+// Memoized components
+const SlotCard = ({ slot, onToggle, onDelete }: {
+  slot: TimeSlot,
+  onToggle: (id: string) => void,
+  onDelete: (id: string) => void
+}) => (
+  <Card
+    className={`${slot.booked ? "border-green-200 bg-green-50" : slot.available ? "border-rose-200" : "border-gray-200 bg-gray-50"}${slot.priority === "priority" ? " border-purple-400" : ""}`}
+  >
+    <CardContent className="p-4">
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <div className="font-medium text-gray-900">{formatDate(slot.date)}</div>
+          <div className="flex items-center gap-1 text-sm text-gray-600">
+            <Clock className="h-4 w-4" /> {slot.time}
+          </div>
+        </div>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onToggle(slot._id)}
+            className={slot.available ? "border-red-200 text-red-600 hover:bg-red-50" : "border-green-200 text-green-600 hover:bg-green-50"}
+          >
+            {slot.available ? "Disable" : "Enable"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onDelete(slot._id)}
+            className="border-red-200 text-red-600 hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <Badge variant={slot.booked ? "default" : slot.available ? "available" : "disabled"}>
+          {slot.booked ? "Booked" : slot.available ? "Available" : "Disabled"}
+        </Badge>
+        <div className="text-sm font-semibold text-gray-900">{formatINR((slot as any).price)}</div>
+      </div>
+      {slot.clientName && <div className="mt-2 text-sm text-gray-600">Client: {slot.clientName}</div>}
+    </CardContent>
+  </Card>
+)
+
+const BookingCard = ({ booking, onEdit }: {
+  booking: Booking,
+  onEdit: (booking: Booking) => void
+}) => {
+  const handleProblemClick = useCallback(() => {
+    const newWindow = window.open("", "_blank")
+    if (newWindow) {
+      const doc = newWindow.document
+      doc.open()
+      doc.write(`
+        <html>
+          <head>
+            <title>Problem Details</title>
+            <style>
+              body {
+                font-family: sans-serif;
+                line-height: 1.6;
+                padding: 20px;
+                max-width: 700px;
+                margin: auto;
+                background: #f9fafb;
+                color: #111827;
+              }
+            </style>
+          </head>
+          <body>
+            <h2>Problem Details</h2>
+            <p>${booking.problem.replace(/\n/g, "<br/>")}</p>
+          </body>
+        </html>
+      `)
+      doc.close()
+    }
+  }, [booking.problem])
+
+  return (
+    <Card className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}>
+      <CardContent className="p-6">
+        <div className="grid md:grid-cols-3 gap-6">
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">{booking.name}</h3>
+            <div className="space-y-1 text-sm text-gray-600">
+              <div>Email: {booking.email}</div>
+              <div>Phone: {booking.phone}</div>
+              <div>Issue: {booking.problemType}</div>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">Session Details</h4>
+            <div className="space-y-1 text-sm text-gray-600">
+              {booking.slot ? (
+                <>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {formatDate((booking as any).slot.date)}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    {(booking as any).slot.time}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500">Price:</span>
+                    <span className="font-semibold text-gray-900">
+                      {formatINR((booking as any).slot.price)}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-gray-500">Slot removed</div>
+              )}
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Badge className={getStatusColor(booking.status)}>
+                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+              </Badge>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onEdit(booking)}
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600 flex items-center gap-2 mt-3">
+              <strong>Problem:</strong>
+              <span
+                className="text-sm text-blue-600 underline cursor-pointer"
+                onClick={handleProblemClick}
+              >
+                Click Here
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+const HistoryCard = ({ booking }: { booking: Booking }) => (
+  <Card className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""}`}>
+    <CardContent className="p-4 space-y-2">
+      <div className="flex justify-between items-center">
+        <div className="font-semibold text-gray-900">{booking.name}</div>
+        <Badge className={getStatusColor(booking.status)}>
+          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+        </Badge>
+      </div>
+      <div className="text-sm text-gray-600">{booking.email}</div>
+      <div className="flex justify-between items-center">
+        {booking.slot ? (
+          <div className="text-sm text-gray-600">
+            {formatDate((booking as any).slot.date)} {(booking as any).slot.time}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-500 italic">Slot removed</div>
+        )}
+        {(booking as any).slot && (
+          <div className="text-sm font-semibold text-gray-900">
+            {formatINR((booking as any).slot.price)}
+          </div>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+)
 
 export default function AdminPage() {
   const { data: slots, mutate: mutateSlots } = useSWR<TimeSlot[]>("/api/slots", fetcher)
@@ -35,124 +248,128 @@ export default function AdminPage() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+  // Memoized filtered bookings to prevent unnecessary re-renders
+  const activeBookings = useMemo(() =>
+    bookings?.filter(b => b.status === "confirmed" || b.status === "pending" || b.status === "scheduled") || [],
+    [bookings]
+  )
 
-  // Slot CRUD
-  const handleAddSlot = async () => {
+  const historyBookings = useMemo(() =>
+    bookings?.filter(b => b.status === "completed" || b.status === "cancelled") || [],
+    [bookings]
+  )
+
+  // Slot CRUD operations
+  const handleAddSlot = useCallback(async () => {
     if (!newSlot.date || !newSlot.time) return
 
-    const payload = { date: newSlot.date, time: newSlot.time, priority: newSlot.priority || "normal", price: Number(newSlot.price || 0) }
-
-    const res = await fetch("/api/slots", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      alert(err.error || "Failed to add slot")
-      return
+    const payload = {
+      date: newSlot.date,
+      time: newSlot.time,
+      priority: newSlot.priority || "normal",
+      price: Number(newSlot.price || 0)
     }
-    mutateSlots()
-    setNewSlot({ date: "", time: "", priority: "normal", price: "" })
-    setShowAddSlot(false)
-  }
 
-  const toggleSlotAvailability = async (id: string) => {
-    await fetch(`/api/slots/${id}`, { method: "PATCH" })
-    mutateSlots()
-  }
+    try {
+      const res = await fetch("/api/slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
 
-  const handleDeleteSlot = async (id: string) => {
-    await fetch(`/api/slots/${id}`, { method: "DELETE" })
-    mutateSlots()
-  }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || "Failed to add slot")
+        return
+      }
+
+      await mutateSlots()
+      setNewSlot({ date: "", time: "", priority: "normal", price: "" })
+      setShowAddSlot(false)
+      toast.success("Slot added successfully!")
+    } catch (error) {
+      toast.error("Failed to add slot")
+    }
+  }, [newSlot, mutateSlots])
+
+  const toggleSlotAvailability = useCallback(async (id: string) => {
+    try {
+      await fetch(`/api/slots/${id}`, { method: "PATCH" })
+      await mutateSlots()
+      toast.success("Slot updated successfully!")
+    } catch (error) {
+      toast.error("Failed to update slot")
+    }
+  }, [mutateSlots])
+
+  const handleDeleteSlot = useCallback(async (id: string) => {
+    try {
+      await fetch(`/api/slots/${id}`, { method: "DELETE" })
+      await mutateSlots()
+      toast.success("Slot deleted successfully!")
+    } catch (error) {
+      toast.error("Failed to delete slot")
+    }
+  }, [mutateSlots])
 
   // Booking status update
-  const handleEditBooking = (booking: Booking) => {
+  const handleEditBooking = useCallback((booking: Booking) => {
     setSelectedBooking(booking)
     setShowStatusDialog(true)
-  }
+  }, [])
 
-  const handleStatusSelect = (status: string) => {
+  const handleStatusSelect = useCallback((status: string) => {
     setSelectedStatus(status)
     setShowStatusDialog(false)
     setShowConfirmation(true)
-  }
+  }, [])
 
-  const confirmStatusUpdate = async () => {
+  const confirmStatusUpdate = useCallback(async () => {
     if (!selectedBooking || !selectedStatus) return
     setIsUpdating(true)
+
     try {
       const response = await fetch(`/api/bookings/${selectedBooking._id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: selectedStatus }),
       })
+
       if (response.ok) {
-        mutateBookings()
+        await mutateBookings()
         setShowConfirmation(false)
         setSelectedBooking(null)
         setSelectedStatus("")
+        toast.success("Booking status updated successfully!")
       } else {
         const error = await response.json()
-        alert(`Error: ${error.error}`)
+        toast.error(`Error: ${error.error}`)
       }
     } catch (error) {
       console.error(error)
-      alert("Error updating booking status")
+      toast.error("Error updating booking status")
     } finally {
       setIsUpdating(false)
     }
-  }
+  }, [selectedBooking, selectedStatus, mutateBookings])
 
-  const cancelStatusUpdate = () => {
+  const cancelStatusUpdate = useCallback(() => {
     setShowConfirmation(false)
     setShowStatusDialog(false)
     setSelectedBooking(null)
     setSelectedStatus("")
-  }
+  }, [])
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 text-green-800"
-      case "pending":
-        return "bg-yellow-100 text-yellow-800"
-      case "completed":
-        return "bg-blue-100 text-blue-800"
-      case "cancelled":
-        return "bg-red-100 text-red-800"
-      case "scheduled":
-        return "bg-purple-100 text-purple-800"
-      default:
-        return "bg-green-100 text-green-800"
-    }
-  }
-
-  const getAvailableStatuses = (currentStatus: string) => {
-    if (currentStatus === "confirmed") {
-      return [
-        { value: "scheduled", label: "Mark as Scheduled", color: "bg-purple-500 hover:bg-purple-600" },
-        { value: "completed", label: "Mark as Completed", color: "bg-blue-500 hover:bg-blue-600" },
-        { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" },
-      ]
-    }
-    if (currentStatus === "scheduled") {
-      return [
-        { value: "completed", label: "Mark as Completed", color: "bg-blue-500 hover:bg-blue-600" },
-        { value: "cancelled", label: "Mark as Cancelled", color: "bg-red-500 hover:bg-red-600" },
-      ]
-    }
-    return []
-  }
-
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     await signOut({ redirect: false })
     toast.success("Signed out successfully!")
     window.location.href = "/"
-  }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
       <Toaster position="top-right" reverseOrder={false} />
+
       {/* Status Dialog */}
       {showStatusDialog && selectedBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -167,12 +384,18 @@ export default function AdminPage() {
             <div className="space-y-3">
               {getAvailableStatuses(selectedBooking.status).length > 0 ? (
                 getAvailableStatuses(selectedBooking.status).map((status) => (
-                  <Button key={status.value} onClick={() => handleStatusSelect(status.value)} className={`w-full ${status.color} text-white font-medium py-3`}>
+                  <Button
+                    key={status.value}
+                    onClick={() => handleStatusSelect(status.value)}
+                    className={`w-full ${status.color} text-white font-medium py-3`}
+                  >
                     {status.label}
                   </Button>
                 ))
               ) : (
-                <div className="text-center py-4 text-gray-500">No status changes available for {selectedBooking.status} bookings.</div>
+                <div className="text-center py-4 text-gray-500">
+                  No status changes available for {selectedBooking.status} bookings.
+                </div>
               )}
             </div>
             <Button onClick={() => setShowStatusDialog(false)} variant="outline" className="w-full mt-4">
@@ -196,7 +419,11 @@ export default function AdminPage() {
               </Badge>
             </div>
             <div className="flex gap-3">
-              <Button onClick={confirmStatusUpdate} disabled={isUpdating} className="flex-1 bg-rose-500 hover:bg-rose-600 text-white">
+              <Button
+                onClick={confirmStatusUpdate}
+                disabled={isUpdating}
+                className="flex-1 bg-rose-500 hover:bg-rose-600 text-white"
+              >
                 {isUpdating ? "Updating..." : "Confirm"}
               </Button>
               <Button onClick={cancelStatusUpdate} variant="outline" className="flex-1" disabled={isUpdating}>
@@ -234,15 +461,16 @@ export default function AdminPage() {
           {/* Tab Navigation */}
           <div className="flex justify-center mb-8">
             <div className="bg-white rounded-lg p-1 shadow-sm border border-rose-100">
-              <Button variant={activeTab === "slots" ? "default" : "ghost"} className={activeTab === "slots" ? "bg-rose-500 text-white" : "text-gray-600"} onClick={() => setActiveTab("slots")}>
-                Time Slots
-              </Button>
-              <Button variant={activeTab === "bookings" ? "default" : "ghost"} className={activeTab === "bookings" ? "bg-rose-500 text-white" : "text-gray-600"} onClick={() => setActiveTab("bookings")}>
-                Bookings
-              </Button>
-              <Button variant={activeTab === "history" ? "default" : "ghost"} className={activeTab === "history" ? "bg-rose-500 text-white" : "text-gray-600"} onClick={() => setActiveTab("history")}>
-                History
-              </Button>
+              {["slots", "bookings", "history"].map((tab) => (
+                <Button
+                  key={tab}
+                  variant={activeTab === tab ? "default" : "ghost"}
+                  className={activeTab === tab ? "bg-rose-500 text-white" : "text-gray-600"}
+                  onClick={() => setActiveTab(tab as typeof activeTab)}
+                >
+                  {tab === "slots" ? "Time Slots" : tab === "bookings" ? "Bookings" : "History"}
+                </Button>
+              ))}
             </div>
           </div>
 
@@ -261,22 +489,55 @@ export default function AdminPage() {
                   <CardHeader><CardTitle>Add New Time Slot</CardTitle></CardHeader>
                   <CardContent>
                     <div className="grid md:grid-cols-4 gap-4">
-                      <div><Label>Date</Label><Input type="date" value={newSlot.date} onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })} /></div>
-                      <div><Label>Time</Label><Input type="time" value={newSlot.time} onChange={(e) => setNewSlot({ ...newSlot, time: e.target.value })} /></div>
+                      <div>
+                        <Label>Date</Label>
+                        <Input
+                          type="date"
+                          value={newSlot.date}
+                          onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label>Time</Label>
+                        <Input
+                          type="time"
+                          value={newSlot.time}
+                          onChange={(e) => setNewSlot({ ...newSlot, time: e.target.value })}
+                        />
+                      </div>
                       <div className="flex flex-col gap-1">
                         <Label htmlFor="priority">Priority</Label>
-                        <Select value={newSlot.priority} onValueChange={(value) => setNewSlot({ ...newSlot, priority: value as "normal" | "priority" })}>
-                          <SelectTrigger id="priority" className="h-10 px-3 text-sm"><SelectValue placeholder="Select priority" /></SelectTrigger>
+                        <Select
+                          value={newSlot.priority}
+                          onValueChange={(value) => setNewSlot({ ...newSlot, priority: value as "normal" | "priority" })}
+                        >
+                          <SelectTrigger id="priority" className="h-10 px-3 text-sm">
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="normal">Normal</SelectItem>
                             <SelectItem value="priority">Priority (Gold)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
-                      <div><Label>Price (INR)</Label><Input type="number" min={0} step={1} value={String(newSlot.price ?? "")} onChange={(e) => setNewSlot({ ...newSlot, price: e.target.value })} placeholder="e.g. 1500" /></div>
+                      <div>
+                        <Label>Price (INR)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={String(newSlot.price ?? "")}
+                          onChange={(e) => setNewSlot({ ...newSlot, price: e.target.value })}
+                          placeholder="e.g. 1500"
+                        />
+                      </div>
                       <div className="md:col-span-4 flex gap-2 justify-end mt-2">
-                        <Button onClick={handleAddSlot} className="bg-rose-500 hover:bg-rose-600">Add Slot</Button>
-                        <Button variant="outline" onClick={() => setShowAddSlot(false)}>Cancel</Button>
+                        <Button onClick={handleAddSlot} className="bg-rose-500 hover:bg-rose-600">
+                          Add Slot
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowAddSlot(false)}>
+                          Cancel
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -285,27 +546,12 @@ export default function AdminPage() {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {slots?.map((slot) => (
-                  <Card key={slot._id} className={`${slot.booked ? "border-green-200 bg-green-50" : slot.available ? "border-rose-200" : "border-gray-200 bg-gray-50"}${slot.priority === "priority" ? " border-purple-400" : ""}`}>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="font-medium text-gray-900">{formatDate(slot.date)}</div>
-                          <div className="flex items-center gap-1 text-sm text-gray-600"><Clock className="h-4 w-4" /> {slot.time}</div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={() => toggleSlotAvailability(slot._id)} className={slot.available ? "border-red-200 text-red-600 hover:bg-red-50" : "border-green-200 text-green-600 hover:bg-green-50"}>
-                            {slot.available ? "Disable" : "Enable"}
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDeleteSlot(slot._id)} className="border-red-200 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Badge variant={slot.booked ? "default" : slot.available ? "available" : "disabled"}>{slot.booked ? "Booked" : slot.available ? "Available" : "Disabled"}</Badge>
-                        <div className="text-sm font-semibold text-gray-900">{formatINR((slot as any).price)}</div>
-                      </div>
-                      {slot.clientName && <div className="mt-2 text-sm text-gray-600">Client: {slot.clientName}</div>}
-                    </CardContent>
-                  </Card>
+                  <SlotCard
+                    key={slot._id}
+                    slot={slot}
+                    onToggle={toggleSlotAvailability}
+                    onDelete={handleDeleteSlot}
+                  />
                 ))}
               </div>
             </div>
@@ -315,174 +561,29 @@ export default function AdminPage() {
           {activeTab === "bookings" && (
             <div className="space-y-6">
               <h2 className="text-xl md:text-2xl font-semibold text-gray-900">Client Bookings</h2>
-
-              {bookings?.filter(
-                (b) => b.status === "confirmed" || b.status === "pending" || b.status === "scheduled"
-              ).length === 0 ? (
+              {activeBookings.length === 0 ? (
                 <p className="text-center text-gray-500 italic">No bookings available</p>
               ) : (
-                bookings
-                  ?.filter(
-                    (b) => b.status === "confirmed" || b.status === "pending" || b.status === "scheduled"
-                  )
-                  .map((booking) => (
-                    <Card
-                      key={booking._id}
-                      className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""
-                        }`}
-                    >
-                      <CardContent className="p-6">
-                        <div className="grid md:grid-cols-3 gap-6">
-                          <div>
-                            <h3 className="font-semibold text-gray-900 mb-2">{booking.name}</h3>
-                            <div className="space-y-1 text-sm text-gray-600">
-                              <div>Email: {booking.email}</div>
-                              <div>Phone: {booking.phone}</div>
-                              <div>Issue: {booking.problemType}</div>
-                            </div>
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-gray-900 mb-2">Session Details</h4>
-                            <div className="space-y-1 text-sm text-gray-600">
-                              {booking.slot ? (
-                                <>
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-4 w-4" />
-                                    {formatDate((booking as any).slot.date)}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    {(booking as any).slot.time}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-gray-500">Price:</span>
-                                    <span className="font-semibold text-gray-900">
-                                      {formatINR((booking as any).slot.price)}
-                                    </span>
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="text-sm text-gray-500">Slot removed</div>
-                              )}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <Badge className={getStatusColor(booking.status)}>
-                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                              </Badge>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleEditBooking(booking)}
-                                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-
-                            <div className="text-sm text-gray-600 flex items-center gap-2 mt-3">
-                              <strong>Problem:</strong>
-                              <span
-                                className="text-sm text-blue-600 underline cursor-pointer"
-                                onClick={() => {
-                                  const newWindow = window.open("", "_blank")
-                                  if (newWindow) {
-                                    const doc = newWindow.document
-                                    doc.open()
-
-                                    doc.write(`
-          <html>
-            <head>
-              <title>Problem Details</title>
-              <style>
-                body {
-                  font-family: sans-serif;
-                  line-height: 1.6;
-                  padding: 20px;
-                  max-width: 700px;
-                  margin: auto;
-                  background: #f9fafb;
-                  color: #111827;
-                }
-              </style>
-            </head>
-            <body>
-              <h2>Problem Details</h2>
-              <p>${booking.problem.replace(/\n/g, "<br/>")}</p>
-            </body>
-          </html>
-        `)
-
-                                    doc.close()
-                                  }
-                                }}
-                              >
-                                Click Here
-                              </span>
-                            </div>
-
-
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                activeBookings.map((booking) => (
+                  <BookingCard key={booking._id} booking={booking} onEdit={handleEditBooking} />
+                ))
               )}
             </div>
           )}
-
 
           {/* History Tab */}
           {activeTab === "history" && (
             <div className="space-y-6">
-              {bookings?.filter((b) => b.status === "completed" || b.status === "cancelled").length === 0 ? (
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-900">Booking History</h2>
+              {historyBookings.length === 0 ? (
                 <p className="text-center text-gray-500 italic">No history available</p>
               ) : (
-                bookings
-                  ?.filter((b) => b.status === "completed" || b.status === "cancelled")
-                  .map((booking) => (
-                    <Card
-                      key={booking._id}
-                      className={`border-rose-200${(booking as any).slot?.priority === "priority" ? " border-purple-400" : ""
-                        }`}
-                    >
-                      <CardContent className="p-4 space-y-2">
-                        {/* Client name with status badge */}
-                        <div className="flex justify-between items-center">
-                          <div className="font-semibold text-gray-900">{booking.name}</div>
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                          </Badge>
-                        </div>
-
-                        <div className="text-sm text-gray-600">{booking.email}</div>
-
-                        {/* Date/time with price */}
-                        <div className="flex justify-between items-center">
-                          {booking.slot ? (
-                            <div className="text-sm text-gray-600">
-                              {formatDate((booking as any).slot.date)} {(booking as any).slot.time}
-                            </div>
-                          ) : (
-                            <div className="text-sm text-gray-500 italic">Slot removed</div>
-                          )}
-
-                          {(booking as any).slot && (
-                            <div className="text-sm font-semibold text-gray-900">
-                              {formatINR((booking as any).slot.price)}
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                historyBookings.map((booking) => (
+                  <HistoryCard key={booking._id} booking={booking} />
+                ))
               )}
             </div>
           )}
-
         </div>
       </div>
     </div>
