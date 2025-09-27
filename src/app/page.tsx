@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Heart, ArrowRight, Mail, Phone } from "lucide-react"
 import { InfiniteMovingMarquee } from "@/components/ui/infinite-moving-cards"
